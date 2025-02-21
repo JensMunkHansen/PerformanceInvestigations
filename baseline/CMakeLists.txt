@@ -2,6 +2,7 @@ set(TARGET_NAME baseline)
 
 if (EMSCRIPTEN)
   sps_emscripten_module(
+    MAIN    
     TARGET_NAME ${TARGET_NAME}
     SOURCE_FILES benchmark.cpp
     THREAD_POOL_SIZE ${MAX_CONCURRENCY}
@@ -10,7 +11,7 @@ if (EMSCRIPTEN)
     OPTIMIZATION BEST
     LIBRARIES benchmark::benchmark;Threads::Threads
     FILE_SYSTEM ON
-    PRE_JS ${PROJECT_SOURCE_DIR}/pre.js
+    PRE_JS ${PROJECT_SOURCE_DIR}/emscripten/pre.js
     THREADING_ENABLED ON)
 else()
   add_executable(${TARGET_NAME} benchmark.cpp)
