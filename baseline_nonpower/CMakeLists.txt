@@ -1,4 +1,4 @@
-set(TARGET_NAME baseline)
+set(TARGET_NAME baseline_nonpower)
 
 if (EMSCRIPTEN)
   sps_emscripten_module(
@@ -21,4 +21,12 @@ else()
   target_link_libraries(${TARGET_NAME} PUBLIC build)
   # Link against benchmark and pthread
   target_link_libraries(${TARGET_NAME} PRIVATE benchmark::benchmark Threads::Threads)
+endif()
+
+if (NOT EMSCRIPTEN)
+  set(TARGET_NAME baseline_nonpower_grind)
+  add_executable(${TARGET_NAME} grind.cpp)
+  target_link_libraries(${TARGET_NAME} PUBLIC build)
+  set_target_properties(${TARGET_NAME} PROPERTIES
+    RUNTIME_OUTPUT_NAME grind)
 endif()
