@@ -40,11 +40,11 @@ if (NOT EMSCRIPTEN)
         COMMAND llvm-objdump -d $<TARGET_FILE:${TARGET_NAME}> > $<TARGET_FILE_DIR:${TARGET_NAME}>/grind.S
         COMMENT "Generating assembly output (.S)"
       )
-    else()
+    elseif(NOT DEFINED MSVC)
       add_custom_command(
         TARGET ${TARGET_NAME} POST_BUILD
         COMMAND objdump -d $<TARGET_FILE:${TARGET_NAME}> > $<TARGET_FILE_DIR:${TARGET_NAME}>/grind.S
         COMMENT "Generating assembly output (.S)"
       )
-  endif()
+    endif()
 endif()
