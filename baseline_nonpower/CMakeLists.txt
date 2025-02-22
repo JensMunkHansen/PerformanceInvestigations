@@ -28,15 +28,26 @@ if (NOT EMSCRIPTEN)
   add_executable(${TARGET_NAME} grind.cpp)
   target_link_libraries(${TARGET_NAME} PUBLIC build)
   target_include_directories(${TARGET_NAME} PRIVATE "${PROJECT_SOURCE_DIR}/linux")
-  set_target_properties(${TARGET_NAME} PROPERTIES
-    RUNTIME_OUTPUT_NAME grind)
+#  set_target_properties(${TARGET_NAME} PROPERTIES
+#    RUNTIME_OUTPUT_NAME grind)
 
   # cmake .. -DCMAKE_BUILD_TYPE=Release
   # make -f baseline_nonpower/CMakeFiles/baseline_nonpower_grind.dir/build.make baseline_nonpower/CMakeFiles/baseline_nonpower_grind.dir/grind.cpp.s
   # find . -name \*.s | xargs -i -t less {}
-  add_custom_command(
-    TARGET ${TARGET_NAME} POST_BUILD
-    COMMAND objdump -d $<TARGET_FILE:${TARGET_NAME}> > $<TARGET_FILE_DIR:${TARGET_NAME}>/grind.S
-    COMMENT "Generating assembly output (.S)"
-  )
+  if (NOT MSVC)
+    if ("${C_COMPILER_ID}" STREQUAL "Clang")
+      add_custom_command(
+        TARGET ${TARGET_NAME} POST_BUILD
+        COMMAND llvm-objdump -d $<TARGET_FILE:${TARGET_NAME}> > $<TARGET_FILE_DIR:${TARGET_NAME}>/grind.S
+        COMMENT "Generating assembly output (.S)"
+      )
+    else()
+      add_custom_command(
+        TARGET ${TARGET_NAME} POST_BUILD
+        COMMAND objdump -d $<TARGET_FILE:${TARGET_NAME}> > $<TARGET_FILE_DIR:${TARGET_NAME}>/grind.S
+        COMMENT "Generating assembly output (.S)"
+      )
+    endif()
+  endif()
+  add_assembly_dump(${TARGET_NAME})  
 endif()
