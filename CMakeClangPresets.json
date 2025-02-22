@@ -16,7 +16,10 @@
 		"type": "equals",
 		"lhs": "${hostSystemName}",
 		"rhs": "Windows"
-            }
+            },
+	    "cacheVariables": {
+		"C_COMPILER_ID": "Clang"
+	    }
 	}
     ],
     "buildPresets": [
