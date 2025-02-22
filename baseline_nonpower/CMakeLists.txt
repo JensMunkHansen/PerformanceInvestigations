@@ -29,4 +29,18 @@ if (NOT EMSCRIPTEN)
   target_link_libraries(${TARGET_NAME} PUBLIC build)
   set_target_properties(${TARGET_NAME} PROPERTIES
     RUNTIME_OUTPUT_NAME grind)
+
+  if (CMAKE_CONFIGURATION_TYPES)
+    add_custom_command(
+      TARGET ${TARGET_NAME} POST_BUILD
+      COMMAND objdump -d $<TARGET_FILE:${TARGET_NAME}> > $<TARGET_FILE_DIR:${TARGET_NAME}>/grind.s
+      COMMENT "Generating assembly output (.s)"
+    )
+  else()
+    add_custom_command(
+      TARGET ${TARGET_NAME} POST_BUILD
+      COMMAND objdump -d $<TARGET_FILE:${TARGET_NAME}> > $<TARGET_FILE_DIR:${TARGET_NAME}>/grind.s
+      COMMENT "Generating assembly output (.s) for WebAssembly"
+    )
+  endif()
 endif()

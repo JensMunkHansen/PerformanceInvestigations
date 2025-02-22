@@ -21,4 +21,7 @@ else()
   target_link_libraries(${TARGET_NAME} PUBLIC build)
   # Link against benchmark and pthread
   target_link_libraries(${TARGET_NAME} PRIVATE benchmark::benchmark Threads::Threads)
+
+
+  
 endif()
