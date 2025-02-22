@@ -1,6 +1,6 @@
 #pragma once
 
-#if defined(__GNUG__)
+#if defined(__GNUG__) || defined(__clang__)
 #define GCC_SPLIT_BLOCK(str) __asm__("//\n\t// " str "\n\t//\n");
 #elif defined(_WIN64)
 // Only 64-bit windows forbid inline assembly

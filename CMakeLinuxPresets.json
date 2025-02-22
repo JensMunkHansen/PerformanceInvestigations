@@ -25,16 +25,11 @@
             }        
         },
         {
-            "name": "windows",
+            "name": "linux-gcc",
             "inherits": "default",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Windows"
-            },
             "cacheVariables": {
-                "CMAKE_C_COMPILER": "clang",
-                "CMAKE_CXX_COMPILER": "clang++"
+                "CMAKE_C_COMPILER": "gcc",
+                "CMAKE_CXX_COMPILER": "g++"
             }        
         },
         {
@@ -66,25 +61,20 @@
             "configuration": "Asan"
         },
         {
-            "name": "Debug-windows",
-            "configurePreset": "windows",
-            "configuration": "Debug",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Windows"
-            }
+            "name": "Debug-gcc",
+            "configurePreset": "linux-gcc",
+            "configuration": "Debug"
         },
         {
-            "name": "Release-windows",
-            "configurePreset": "windows",
-            "configuration": "Release",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Windows"
-            }
-        }        
+            "name": "Release-gcc",
+            "configurePreset": "linux-gcc",
+            "configuration": "Release"
+        },
+        {
+            "name": "Asan-gcc",
+            "configurePreset": "linux-gcc",
+            "configuration": "Asan"
+        }
     ],
     "testPresets": [
         {
