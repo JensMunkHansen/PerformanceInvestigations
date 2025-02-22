@@ -9,6 +9,7 @@
 	{
 	    "name": "vs2022-clang",
 	    "displayName": "Visual Studio 2022 with Clang",
+            "binaryDir": "build/${presetName}",
 	    "generator": "Visual Studio 17 2022",
 	    "toolset": "ClangCL",
             "condition": {
@@ -21,12 +22,12 @@
     "buildPresets": [
         {
             "name": "Debug",
-            "configurePreset": "windows",
+            "configurePreset": "vs2022-clang",
             "configuration": "Debug"
         },
         {
             "name": "Release",
-            "configurePreset": "windows",
+            "configurePreset": "vs2022-clang",
             "configuration": "Release"
         }        
     ],
@@ -34,7 +35,7 @@
         {
             "name": "windows-test",
             "description": "Enable output on failure",
-            "configurePreset": "windows",
+            "configurePreset": "vs2022-clang",
             "output": {
                 "outputOnFailure": true
             }
