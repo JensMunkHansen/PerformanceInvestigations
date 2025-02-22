@@ -1,0 +1,43 @@
+{
+    "version": 3,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 21,
+        "patch": 0
+    },
+    "configurePresets": [
+	{
+	    "name": "vs2022-clang",
+	    "displayName": "Visual Studio 2022 with Clang",
+	    "generator": "Visual Studio 17 2022",
+	    "toolset": "ClangCL",
+            "condition": {
+		"type": "equals",
+		"lhs": "${hostSystemName}",
+		"rhs": "Windows"
+            }
+	}
+    ],
+    "buildPresets": [
+        {
+            "name": "Debug",
+            "configurePreset": "windows",
+            "configuration": "Debug"
+        },
+        {
+            "name": "Release",
+            "configurePreset": "windows",
+            "configuration": "Release"
+        }        
+    ],
+    "testPresets": [
+        {
+            "name": "windows-test",
+            "description": "Enable output on failure",
+            "configurePreset": "windows",
+            "output": {
+                "outputOnFailure": true
+            }
+        }
+    ]
+}

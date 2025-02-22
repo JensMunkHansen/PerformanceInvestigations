@@ -1,0 +1,43 @@
+{
+    "version": 3,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 21,
+        "patch": 0
+    },
+    "configurePresets": [
+	{
+            "name": "windows",
+	    "diplayName": "MSVC",
+	    "generator": "Visual Studio 17 2022",
+            "binaryDir": "out",
+            "condition": {
+		"type": "equals",
+		"lhs": "${hostSystemName}",
+		"rhs": "Windows"
+            }
+	}
+    ],
+    "buildPresets": [
+        {
+            "name": "Debug",
+            "configurePreset": "windows",
+            "configuration": "Debug"
+        },
+        {
+            "name": "Release",
+            "configurePreset": "windows",
+            "configuration": "Release"
+        }        
+    ],
+    "testPresets": [
+        {
+            "name": "windows-test",
+            "description": "Enable output on failure",
+            "configurePreset": "windows",
+            "output": {
+                "outputOnFailure": true
+            }
+        }
+    ]
+}
