@@ -33,5 +33,7 @@ add_library(build INTERFACE)
 include(spsCompilerPlatformFlags)
 
 add_subdirectory(baseline)
-add_subdirectory(baseline_nonpower)
-
+if (NOT MSVC)
+  # Works with Clang
+  add_subdirectory(baseline_nonpower)
+endif()
