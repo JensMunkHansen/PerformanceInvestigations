@@ -35,3 +35,4 @@ build/
 _deps/
 .vs
 CMakePresets.json
+out/

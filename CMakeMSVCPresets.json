@@ -10,7 +10,7 @@
             "name": "windows",
 	    "diplayName": "MSVC",
 	    "generator": "Visual Studio 17 2022",
-            "binaryDir": "out",
+            "binaryDir": "build/${presetName}",
             "condition": {
 		"type": "equals",
 		"lhs": "${hostSystemName}",
