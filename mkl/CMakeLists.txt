@@ -7,6 +7,10 @@ set(TARGET_NAME intelmkl)
 find_package(MKL QUIET)
 
 if (NOT MKL_FOUND)
+  if (EMSCRIPTEN)
+    # We have no precompiled MKL for Emscripten
+    return()
+  endif()
   # Supply MKL_DIR in CMakePresets.json and uncomment at your convenience
   # return()
 endif()
