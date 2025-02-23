@@ -1,4 +1,6 @@
-set(TARGET_NAME blocked)
+set(TARGET_NAME blocked_column_multi_output)
+
+sps_get_processor_count(MAX_CONCURRENCY)
 
 if (EMSCRIPTEN)
   sps_emscripten_module(
@@ -12,6 +14,11 @@ if (EMSCRIPTEN)
     FILE_SYSTEM ON
     PRE_JS ${PROJECT_SOURCE_DIR}/emscripten/pre.js
     THREADING_ENABLED ON)
+
+sps_target_compile_flags(${TARGET_NAME}
+  THREADING_ENABLED ON
+  OPTIMIZATION BEST)
+  
 else()
   # Set compiler flags for optimization and standards
   add_executable(${TARGET_NAME} benchmark.cpp)

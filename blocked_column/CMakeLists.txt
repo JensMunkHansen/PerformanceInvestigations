@@ -1,4 +1,6 @@
-set(TARGET_NAME blocked)
+set(TARGET_NAME blocked_column)
+
+sps_get_processor_count(MAX_CONCURRENCY)
 
 if (EMSCRIPTEN)
   sps_emscripten_module(
@@ -12,8 +14,12 @@ if (EMSCRIPTEN)
     FILE_SYSTEM ON
     PRE_JS ${PROJECT_SOURCE_DIR}/emscripten/pre.js
     THREADING_ENABLED ON)
+
+sps_target_compile_flags(${TARGET_NAME}
+  THREADING_ENABLED ON
+  OPTIMIZATION BEST)
+  
 else()
-  # Set compiler flags for optimization and standards
   add_executable(${TARGET_NAME} benchmark.cpp)
   # Set compiler flags for optimization and standards
   target_link_libraries(${TARGET_NAME} PUBLIC build)
@@ -22,7 +28,7 @@ else()
 endif()
 
 if (TARGET_NAMES_EQUAL)
-  set_target_properties(${TARGET_NAME} PROPERTIES
-    RUNTIME_OUTPUT_NAME mmul_bench
-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+set_target_properties(${TARGET_NAME} PROPERTIES
+  RUNTIME_OUTPUT_NAME mmul_bench
+  RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 endif()

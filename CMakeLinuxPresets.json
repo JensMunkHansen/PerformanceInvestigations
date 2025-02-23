@@ -21,7 +21,8 @@
             },
             "cacheVariables": {
                 "CMAKE_C_COMPILER": "clang",
-                "CMAKE_CXX_COMPILER": "clang++"
+                "CMAKE_CXX_COMPILER": "clang++",
+                "MKL_DIR": "/opt/intel/oneapi/mkl/latest/lib/cmake/mkl"
             }        
         },
         {

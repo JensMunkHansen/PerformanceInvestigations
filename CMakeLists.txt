@@ -35,4 +35,14 @@ include(spsCompilerPlatformFlags)
 
 add_subdirectory(baseline)
 add_subdirectory(baseline_nonpower)
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+  return()
+endif()
+
+# Needs to be tested on windows
 add_subdirectory(blocked)
+add_subdirectory(blocked_column) 
+add_subdirectory(blocked_column_multi_output)
+add_subdirectory(mkl)
+# L1 cache, transpose and multiply
