@@ -43,6 +43,6 @@ endif()
 # Needs to be tested on windows
 add_subdirectory(blocked)
 add_subdirectory(blocked_column) 
-add_subdirectory(blocked_column_multi_output)
+add_subdirectory(multi_output)
 add_subdirectory(mkl)
 # L1 cache, transpose and multiply
