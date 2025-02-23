@@ -1,26 +1,24 @@
-set(TARGET_NAME baseline)
+set(TARGET_NAME blocked)
 
 if (EMSCRIPTEN)
   sps_emscripten_module(
-    MAIN    
     TARGET_NAME ${TARGET_NAME}
     SOURCE_FILES benchmark.cpp
     THREAD_POOL_SIZE ${MAX_CONCURRENCY}
     ES6_MODULE OFF
     EXIT_RUNTIME ON
     OPTIMIZATION BEST
-    COMPILE_OPTIMIZATION BEST
-    DEBUG NONE
-    LIBRARIES build;benchmark::benchmark;Threads::Threads
+    LIBRARIES benchmark::benchmark;Threads::Threads
     FILE_SYSTEM ON
     PRE_JS ${PROJECT_SOURCE_DIR}/emscripten/pre.js
     THREADING_ENABLED ON)
 else()
+  # Set compiler flags for optimization and standards
   add_executable(${TARGET_NAME} benchmark.cpp)
   # Set compiler flags for optimization and standards
   target_link_libraries(${TARGET_NAME} PUBLIC build)
   # Link against benchmark and pthread
-  target_link_libraries(${TARGET_NAME} PRIVATE benchmark::benchmark Threads::Threads)
+  target_link_libraries(${TARGET_NAME} PRIVATE benchmark Threads::Threads)
 endif()
 
 if (TARGET_NAMES_EQUAL)

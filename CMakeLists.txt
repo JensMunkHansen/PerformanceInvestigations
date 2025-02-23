@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.15)
 project(PerformanceInvestigations
 LANGUAGES C CXX)
 
+option(TARGET_NAMES_EQUAL "Same target names" OFF)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMake)
 
 # Standard install dirs (ADR)
@@ -34,3 +35,4 @@ include(spsCompilerPlatformFlags)
 
 add_subdirectory(baseline)
 add_subdirectory(baseline_nonpower)
+add_subdirectory(blocked)
