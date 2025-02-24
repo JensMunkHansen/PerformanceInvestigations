@@ -40,7 +40,7 @@ add_subdirectory(baseline)
 add_subdirectory(baseline_nonpower)
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-  return()
+#  return()
 endif()
 
 # Needs to be tested on windows
