@@ -12,7 +12,9 @@ if (NOT MKL_FOUND)
     return()
   endif()
   # Supply MKL_DIR in CMakePresets.json and uncomment at your convenience
-  # return()
+  if(NOT EXISTS "${MKL_DIR}")
+    return()
+  endif()
 endif()
 
 # Stupid Intel, we populate it ourselves

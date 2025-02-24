@@ -3,12 +3,15 @@ cmake_minimum_required(VERSION 3.15)
 project(PerformanceInvestigations
 LANGUAGES C CXX)
 
+set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
+
 option(TARGET_NAMES_EQUAL "Same target names" OFF)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMake)
 
 # Standard install dirs (ADR)
 include(GNUInstallDirs)
 
+set(CMAKE_DEBUG_POSTFIX "d")
 # Set up our directory structure for output libraries and binaries
 # (Note: these are the build locations, not the install locations)
 if(NOT CMAKE_RUNTIME_OUTPUT_DIRECTORY)
