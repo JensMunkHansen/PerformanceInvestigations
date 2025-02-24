@@ -11,6 +11,9 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMake)
 # Standard install dirs (ADR)
 include(GNUInstallDirs)
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 set(CMAKE_DEBUG_POSTFIX "d")
 # Set up our directory structure for output libraries and binaries
 # (Note: these are the build locations, not the install locations)
