@@ -2,6 +2,8 @@
 
 #include "benchmark/benchmark.h"
 
+#include "../platform.h"
+
 #include <algorithm>
 #include <atomic>
 #include <cstdlib>
