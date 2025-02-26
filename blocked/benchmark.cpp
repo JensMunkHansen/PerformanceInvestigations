@@ -81,9 +81,9 @@ static void blocked_mmul_bench(benchmark::State& s)
   delete[] C;
 }
 BENCHMARK(blocked_mmul_bench)
-  ->Arg(2 * numThreads * 16)
-  ->Arg(4 * numThreads * 16)
-  ->Arg(6 * numThreads * 16)
+  ->Arg(1 * BENCH_SCALE * numThreads * 16)
+  ->Arg(2 * BENCH_SCALE * numThreads * 16)
+  ->Arg(3 * BENCH_SCALE * numThreads * 16)
   ->Unit(benchmark::kMillisecond);
 
 // Blocked MMul with aligned memory benchmark
@@ -119,9 +119,9 @@ static void blocked_aligned_mmul_bench(benchmark::State& s)
   std::free(C);
 }
 BENCHMARK(blocked_aligned_mmul_bench)
-  ->Arg(2 * numThreads * 16)
-  ->Arg(4 * numThreads * 16)
-  ->Arg(6 * numThreads * 16)
+  ->Arg(1 * BENCH_SCALE * numThreads * 16)
+  ->Arg(2 * BENCH_SCALE * numThreads * 16)
+  ->Arg(3 * BENCH_SCALE * numThreads * 16)
   ->Unit(benchmark::kMillisecond)
   ->UseRealTime();
 
@@ -181,9 +181,9 @@ static void parallel_blocked_mmul_bench(benchmark::State& s)
   std::free(C);
 }
 BENCHMARK(parallel_blocked_mmul_bench)
-  ->Arg(2 * numThreads * 16)
-  ->Arg(4 * numThreads * 16)
-  ->Arg(6 * numThreads * 16)
+  ->Arg(1 * BENCH_SCALE * numThreads * 16)
+  ->Arg(2 * BENCH_SCALE * numThreads * 16)
+  ->Arg(3 * BENCH_SCALE * numThreads * 16)
   ->Unit(benchmark::kMillisecond)
   ->UseRealTime();
 

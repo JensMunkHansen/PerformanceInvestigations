@@ -3,6 +3,8 @@
 
 #include "benchmark/benchmark.h"
 
+#include "../platform.h"
+
 #include <algorithm>
 #include <cstdlib>
 #include <random>
@@ -12,7 +14,8 @@
 unsigned int numThreads = std::thread::hardware_concurrency();
 
 // Serial implementation
-void serial_mmul(const float *A, const float *B, float *C, std::size_t N) {
+void serial_mmul(const float* A, const float* B, float* C, std::size_t N)
+{
   // For each row...
   for (std::size_t row = 0; row < N; row++)
     // For each col...
@@ -24,8 +27,9 @@ void serial_mmul(const float *A, const float *B, float *C, std::size_t N) {
 }
 
 // Parallel implementation
-void parallel_mmul(const float *A, const float *B, float *C, std::size_t N,
-                   std::size_t start_row, std::size_t end_row) {
+void parallel_mmul(const float* A, const float* B, float* C, std::size_t N, std::size_t start_row,
+  std::size_t end_row)
+{
   // For each row assigned to this thread...
   for (std::size_t row = start_row; row < end_row; row++)
     // For each column...
@@ -37,7 +41,8 @@ void parallel_mmul(const float *A, const float *B, float *C, std::size_t N,
 }
 
 // Serial MMul benchmark
-static void serial_mmul_bench(benchmark::State &s) {
+static void serial_mmul_bench(benchmark::State& s)
+{
   // Number Dimensions of our matrix
   std::size_t N = s.range(0);
 
@@ -47,9 +52,9 @@ static void serial_mmul_bench(benchmark::State &s) {
   std::uniform_real_distribution<float> dist(-10, 10);
 
   // Create input matrices
-  float *A = new float[N * N];
-  float *B = new float[N * N];
-  float *C = new float[N * N];
+  float* A = new float[N * N];
+  float* B = new float[N * N];
+  float* C = new float[N * N];
 
   // Initialize them with random values (and C to 0)
   std::generate(A, A + N * N, [&] { return dist(rng); });
@@ -57,7 +62,8 @@ static void serial_mmul_bench(benchmark::State &s) {
   std::generate(C, C + N * N, [&] { return 0.0f; });
 
   // Main benchmark loop
-  for (auto _ : s) {
+  for (auto _ : s)
+  {
     serial_mmul(A, B, C, N);
   }
 
@@ -67,13 +73,14 @@ static void serial_mmul_bench(benchmark::State &s) {
   delete[] C;
 }
 BENCHMARK(serial_mmul_bench)
-->Arg(2*16*numThreads)
-->Arg(4*16*numThreads)
-->Arg(6*16*numThreads)
-    ->Unit(benchmark::kMillisecond);
+  ->Arg(1 * BENCH_SCALE * 16 * numThreads)
+  ->Arg(2 * BENCH_SCALE * 16 * numThreads)
+  ->Arg(3 * BENCH_SCALE * 16 * numThreads)
+  ->Unit(benchmark::kMillisecond);
 
 // Parallel MMul benchmark
-static void parallel_mmul_bench(benchmark::State &s) {
+static void parallel_mmul_bench(benchmark::State& s)
+{
   // Number Dimensions of our matrix
   std::size_t N = s.range(0);
 
@@ -83,9 +90,9 @@ static void parallel_mmul_bench(benchmark::State &s) {
   std::uniform_real_distribution<float> dist(-10, 10);
 
   // Create input matrices
-  float *A = new float[N * N];
-  float *B = new float[N * N];
-  float *C = new float[N * N];
+  float* A = new float[N * N];
+  float* B = new float[N * N];
+  float* C = new float[N * N];
 
   // Initialize them with random values (and C to 0)
   std::generate(A, A + N * N, [&] { return dist(rng); });
@@ -102,18 +109,20 @@ static void parallel_mmul_bench(benchmark::State &s) {
   std::size_t n_rows = N / num_threads;
 
   // Main benchmark loop
-  for (auto _ : s) {
+  for (auto _ : s)
+  {
     // Launch threads
     std::size_t end_row = 0;
-    for (std::size_t i = 0; i < num_threads - 1; i++) {
+    for (std::size_t i = 0; i < num_threads - 1; i++)
+    {
       auto start_row = i * n_rows;
       end_row = start_row + n_rows;
-      threads.emplace_back(
-          [&] { parallel_mmul(A, B, C, N, start_row, end_row); });
+      threads.emplace_back([&] { parallel_mmul(A, B, C, N, start_row, end_row); });
     }
 
     // Wait for all threads to complete
-    for (auto &t : threads) t.join();
+    for (auto& t : threads)
+      t.join();
 
     // Clear the threads each iteration of the benchmark
     threads.clear();
@@ -125,30 +134,37 @@ static void parallel_mmul_bench(benchmark::State &s) {
   delete[] C;
 }
 BENCHMARK(parallel_mmul_bench)
-->Arg(2*16*numThreads)
-->Arg(4*16*numThreads)
-->Arg(6*16*numThreads)
-    ->Unit(benchmark::kMillisecond)
-    ->UseRealTime();
+  ->Arg(1 * BENCH_SCALE * 16 * numThreads)
+  ->Arg(2 * BENCH_SCALE * 16 * numThreads)
+  ->Arg(3 * BENCH_SCALE * 16 * numThreads)
+  ->Unit(benchmark::kMillisecond)
+  ->UseRealTime();
 
-int main(int argc, char** argv) {
-    // Separate user arguments and benchmark arguments
-    std::vector<char*> benchmark_args;
-    for (int i = 0; i < argc; ++i) {
-        if (std::string(argv[i]).find("--") == 0 || i == 0) {
-            // Keep benchmark-specific arguments (starting with '--') and the program name
-            benchmark_args.push_back(argv[i]);
-        } else {
-            // Custom user arguments
-          numThreads = std::min(static_cast<unsigned int>(std::stoi(argv[i])), std::thread::hardware_concurrency());
-        }
+int main(int argc, char** argv)
+{
+  // Separate user arguments and benchmark arguments
+  std::vector<char*> benchmark_args;
+  for (int i = 0; i < argc; ++i)
+  {
+    if (std::string(argv[i]).find("--") == 0 || i == 0)
+    {
+      // Keep benchmark-specific arguments (starting with '--') and the program name
+      benchmark_args.push_back(argv[i]);
     }
-    // Pass filtered arguments to Google Benchmark
-    int benchmark_argc = static_cast<int>(benchmark_args.size());
-    char** benchmark_argv = benchmark_args.data();
+    else
+    {
+      // Custom user arguments
+      numThreads = std::min(
+        static_cast<unsigned int>(std::stoi(argv[i])), std::thread::hardware_concurrency());
+    }
+  }
+  // Pass filtered arguments to Google Benchmark
+  int benchmark_argc = static_cast<int>(benchmark_args.size());
+  char** benchmark_argv = benchmark_args.data();
 
-    benchmark::Initialize(&benchmark_argc, benchmark_argv);
-    if (benchmark::ReportUnrecognizedArguments(benchmark_argc, benchmark_argv)) return 1;
-    benchmark::RunSpecifiedBenchmarks();
-    return 0;
+  benchmark::Initialize(&benchmark_argc, benchmark_argv);
+  if (benchmark::ReportUnrecognizedArguments(benchmark_argc, benchmark_argv))
+    return 1;
+  benchmark::RunSpecifiedBenchmarks();
+  return 0;
 }

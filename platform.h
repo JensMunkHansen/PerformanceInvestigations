@@ -8,4 +8,6 @@
 #include <cstdlib> // For std::aligned_alloc
 #define ALIGNED_ALLOC(alignment, size) std::aligned_alloc(alignment, size)
 #define ALIGNED_FREE(ptr) std::free(ptr)
+
+#define BENCH_SCALE 2
 #endif
