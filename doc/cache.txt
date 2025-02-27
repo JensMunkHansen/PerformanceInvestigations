@@ -1,0 +1,29 @@
+perf stat -e cache-misses,cache-references ./baseline/grind 
+
+ Performance counter stats for './baseline/grind':
+
+           154,043      cache-misses                     #   62.016 % of all cache refs    
+           248,393      cache-references                                                   
+
+       0.009948391 seconds time elapsed
+
+       0.009939000 seconds user
+       0.000000000 seconds sys
+
+ sudo perf stat -e cache-misses,cache-references ./baseline_nonpower/grind
+
+ Performance counter stats for './baseline_nonpower/grind':
+
+           158,154      cache-misses                     #   55.114 % of all cache refs    
+           286,960      cache-references                                                   
+
+       0.010783809 seconds time elapsed
+
+       0.010777000 seconds user
+       0.000000000 seconds sys
+
+
+valgrind --tool=cachegrind ./baseline/grind
+baseline_misses.txt cg_annotate on output
+
+valgrind --tool=cachegrind --LL=256,8,64

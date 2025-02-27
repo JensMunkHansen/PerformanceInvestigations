@@ -1,0 +1,22 @@
+-----------------------------------------------------------------------------
+Benchmark                                   Time             CPU   Iterations
+-----------------------------------------------------------------------------
+serial_mmul_bench/512                     111 ms          111 ms           61
+serial_mmul_bench/1024                   1993 ms         1993 ms            4
+serial_mmul_bench/1536                   6706 ms         6703 ms            1
+parallel_mmul_bench/512/real_time        12.0 ms        0.327 ms          605
+parallel_mmul_bench/1024/real_time        171 ms        0.442 ms           41
+parallel_mmul_bench/1536/real_time        544 ms        0.455 ms           12
+-----------------------------------------------------------------------------
+Benchmark                                   Time             CPU   Iterations
+-----------------------------------------------------------------------------
+serial_mmul_bench/528                     122 ms          122 ms           58
+serial_mmul_bench/1040                    969 ms          969 ms            7
+serial_mmul_bench/1552                   3238 ms         3237 ms            2
+parallel_mmul_bench/528/real_time        11.9 ms        0.327 ms          601
+parallel_mmul_bench/1040/real_time       99.8 ms        0.470 ms           72
+parallel_mmul_bench/1552/real_time        351 ms        0.476 ms           20
+-------------------------------------------------------------------------------------
+Benchmark                                           Time             CPU   Iterations
+-------------------------------------------------------------------------------------
+blocked_mmul_bench/512                           22.5 ms         22.5 ms          186

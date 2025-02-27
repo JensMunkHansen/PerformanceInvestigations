@@ -1,0 +1,83 @@
+***WARNING*** Failed to set thread affinity. Estimated CPU frequency may be incorrect.
+2025-02-22T00:21:45+01:00
+Running /home/jmh/programming/cpp/performance/mmul/src/build_wasm/baseline/mmul_bench.cjs
+Run on (16 X 999.997 MHz CPU s)
+-----------------------------------------------------------------------------
+Benchmark                                   Time             CPU   Iterations
+-----------------------------------------------------------------------------
+serial_mmul_bench/512                     114 ms          114 ms           62
+serial_mmul_bench/1024                   1924 ms         1924 ms            4
+serial_mmul_bench/1536                   6583 ms         6583 ms            1
+parallel_mmul_bench/512/real_time        15.4 ms         15.4 ms          468
+parallel_mmul_bench/1024/real_time        170 ms          170 ms           40
+parallel_mmul_bench/1536/real_time        688 ms          688 ms           10
+***WARNING*** Failed to set thread affinity. Estimated CPU frequency may be incorrect.
+2025-02-22T00:22:36+01:00
+Running /home/jmh/programming/cpp/performance/mmul/src/build_wasm/baseline_nonpower/mmul_bench.cjs
+Run on (16 X 999.998 MHz CPU s)
+-----------------------------------------------------------------------------
+Benchmark                                   Time             CPU   Iterations
+-----------------------------------------------------------------------------
+serial_mmul_bench/528                     125 ms          125 ms           56
+serial_mmul_bench/1040                   1001 ms         1001 ms            7
+serial_mmul_bench/1552                   3368 ms         3368 ms            2
+parallel_mmul_bench/528/real_time        15.3 ms         15.3 ms          458
+parallel_mmul_bench/1040/real_time        116 ms          116 ms           61
+parallel_mmul_bench/1552/real_time        417 ms          417 ms           17
+***WARNING*** Failed to set thread affinity. Estimated CPU frequency may be incorrect.
+2025-02-22T00:23:33+01:00
+Running /home/jmh/programming/cpp/performance/mmul/src/build_wasm/blocked/mmul_bench.cjs
+Run on (16 X 999.997 MHz CPU s)
+-------------------------------------------------------------------------------------
+Benchmark                                           Time             CPU   Iterations
+-------------------------------------------------------------------------------------
+blocked_mmul_bench/512                           64.7 ms         64.7 ms           65
+blocked_mmul_bench/1024                           699 ms          699 ms            6
+blocked_mmul_bench/1536                          2109 ms         2109 ms            2
+blocked_aligned_mmul_bench/512/real_time         54.8 ms         54.8 ms           77
+blocked_aligned_mmul_bench/1024/real_time         587 ms          587 ms            7
+blocked_aligned_mmul_bench/1536/real_time        1932 ms         1932 ms            2
+parallel_blocked_mmul_bench/512/real_time        10.4 ms         10.4 ms          414
+parallel_blocked_mmul_bench/1024/real_time       83.0 ms         83.0 ms           51
+parallel_blocked_mmul_bench/1536/real_time        400 ms          400 ms           15
+received "loaded" command from terminated worker: 10
+received "loaded" command from terminated worker: 7
+received "loaded" command from terminated worker: 5
+received "loaded" command from terminated worker: 6
+received "loaded" command from terminated worker: 8
+received "loaded" command from terminated worker: 9
+received "loaded" command from terminated worker: 11
+received "loaded" command from terminated worker: 12
+received "loaded" command from terminated worker: 13
+received "loaded" command from terminated worker: 14
+received "loaded" command from terminated worker: 15
+received "loaded" command from terminated worker: 16
+***WARNING*** Failed to set thread affinity. Estimated CPU frequency may be incorrect.
+2025-02-22T00:24:26+01:00
+Running /home/jmh/programming/cpp/performance/mmul/src/build_wasm/blocked_column/mmul_bench.cjs
+Run on (16 X 999.996 MHz CPU s)
+--------------------------------------------------------------------------------------------
+Benchmark                                                  Time             CPU   Iterations
+--------------------------------------------------------------------------------------------
+blocked_column_aligned_mmul_bench/512                   55.9 ms         55.9 ms           75
+blocked_column_aligned_mmul_bench/1024                   613 ms          613 ms            7
+blocked_column_aligned_mmul_bench/1536                  1995 ms         1995 ms            2
+blocked_column_mmul_bench/512                           64.2 ms         64.2 ms           65
+blocked_column_mmul_bench/1024                           717 ms          717 ms            6
+blocked_column_mmul_bench/1536                          2131 ms         2131 ms            2
+parallel_blocked_column_mmul_bench/512/real_time        3.09 ms         3.09 ms         1000
+parallel_blocked_column_mmul_bench/1024/real_time       25.7 ms         25.7 ms          156
+parallel_blocked_column_mmul_bench/1536/real_time       68.7 ms         68.7 ms           53
+***WARNING*** Failed to set thread affinity. Estimated CPU frequency may be incorrect.
+2025-02-22T00:25:14+01:00
+Running /home/jmh/programming/cpp/performance/mmul/src/build_wasm/blocked_column_multi_output/mmul_bench.cjs
+Run on (16 X 999.998 MHz CPU s)
+---------------------------------------------------------------------------------------------------------
+Benchmark                                                               Time             CPU   Iterations
+---------------------------------------------------------------------------------------------------------
+blocked_column_multi_output_aligned_mmul_bench/512                   53.1 ms         53.1 ms           79
+blocked_column_multi_output_aligned_mmul_bench/1024                   465 ms          465 ms            9
+blocked_column_multi_output_aligned_mmul_bench/1536                  1435 ms         1435 ms            3
+parallel_blocked_column_multi_output_mmul_bench/512/real_time        3.16 ms         3.16 ms         1285
+parallel_blocked_column_multi_output_mmul_bench/1024/real_time       21.0 ms         21.0 ms          195
+parallel_blocked_column_multi_output_mmul_bench/1536/real_time       70.0 ms         70.0 ms           44

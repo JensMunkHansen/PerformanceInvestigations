@@ -1,0 +1,381 @@
+--------------------------------------------------------------------------------
+I1 cache:         32768 B, 64 B, 8-way associative
+D1 cache:         49152 B, 64 B, 12-way associative
+LL cache:         25165824 B, 64 B, 12-way associative
+Command:          ./baseline/grind
+Data file:        cachegrind.out.81548
+Events recorded:  Ir I1mr ILmr Dr D1mr DLmr Dw D1mw DLmw
+Events shown:     Ir I1mr ILmr Dr D1mr DLmr Dw D1mw DLmw
+Event sort order: Ir I1mr ILmr Dr D1mr DLmr Dw D1mw DLmw
+Thresholds:       0.1 100 100 100 100 100 100 100 100
+Include dirs:     
+User annotated:   
+Auto-annotation:  on
+
+--------------------------------------------------------------------------------
+Ir                   I1mr           ILmr           Dr                     D1mr                 DLmr           Dw                  D1mw             DLmw             
+--------------------------------------------------------------------------------
+903,601,603 (100.0%) 2,181 (100.0%) 2,059 (100.0%) 1,226,948,179 (100.0%) 201,731,218 (100.0%) 7,419 (100.0%) 11,309,489 (100.0%) 329,962 (100.0%) 198,017 (100.0%)  PROGRAM TOTALS
+
+--------------------------------------------------------------------------------
+Ir                   I1mr         ILmr         Dr                     D1mr                 DLmr           Dw                 D1mw             DLmw              file:function
+--------------------------------------------------------------------------------
+806,097,960 (89.21%)   5 ( 0.23%)   5 ( 0.24%) 1,207,959,561 (98.45%) 201,653,253 (99.96%)     0            131,085 ( 1.16%) 131,073 (39.72%)       0           /home/jmh/programming/cpp/performance/mmul/src/baseline/grind.cpp:serial_mmul_bench(unsigned long) [clone .constprop.0]
+ 74,106,466 ( 8.20%)  10 ( 0.46%)   9 ( 0.44%)    14,182,748 ( 1.16%)           1 ( 0.00%)     1 ( 0.01%) 2,628,190 (23.24%)       0                0           /usr/include/c++/12/bits/random.tcc:float std::generate_canonical<float, 24ul, std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul> >(std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul>&)
+  8,917,003 ( 0.99%)   2 ( 0.09%)   2 ( 0.10%)       131,073 ( 0.01%)      65,538 ( 0.03%)     0          2,097,153 (18.54%) 131,073 (39.72%) 131,072 (66.19%)  /usr/include/c++/12/bits/stl_algo.h:serial_mmul_bench(unsigned long) [clone .constprop.0]
+  8,389,861 ( 0.93%)   0            0              4,194,304 ( 0.34%)           0              0          2,097,155 (18.54%)       1 ( 0.00%)       1 ( 0.00%)  /usr/include/c++/12/bits/random.h:serial_mmul_bench(unsigned long) [clone .constprop.0]
+  4,194,320 ( 0.46%)   3 ( 0.14%)   3 ( 0.15%)             2 ( 0.00%)           2 ( 0.00%)     0          4,194,304 (37.09%)  65,537 (19.86%)  65,536 (33.10%)  ./string/../sysdeps/x86_64/multiarch/memset-vec-unaligned-erms.S:__memset_avx2_unaligned_erms
+
+--------------------------------------------------------------------------------
+-- Auto-annotated source: /home/jmh/programming/cpp/performance/mmul/src/baseline/grind.cpp
+--------------------------------------------------------------------------------
+Ir                   I1mr       ILmr       Dr                     D1mr                 DLmr       Dw               D1mw             DLmw       
+
+-- line 3 ----------------------------------------
+          .          .          .                      .                    .          .                .                .          .           #include <random>
+          .          .          .                      .                    .          .                .                .          .           #include <thread>
+          .          .          .                      .                    .          .                .                .          .           #include <vector>
+          .          .          .                      .                    .          .                .                .          .           #include <iostream>
+          .          .          .                      .                    .          .                .                .          .           
+          .          .          .                      .                    .          .                .                .          .           // Serial implementation
+          .          .          .                      .                    .          .                .                .          .           void serial_mmul(const float *A, const float *B, float *C, std::size_t N) {
+          .          .          .                      .                    .          .                .                .          .             // For each row...
+      5,120 ( 0.00%) 1 ( 0.05%) 1 ( 0.05%)             0                    0          0                0                0          0             for (std::size_t row = 0; row < N; row++)
+          .          .          .                      .                    .          .                .                .          .               // For each col...
+          .          .          .                      .                    .          .                .                .          .               for (std::size_t col = 0; col < N; col++)
+          .          .          .                      .                    .          .                .                .          .                 // For each element in the row/col pair...
+537,657,344 (59.50%) 0          0                      0                    0          0          131,072 ( 1.16%) 131,072 (39.72%) 0                 for (std::size_t idx = 0; idx < N; idx++)
+          .          .          .                      .                    .          .                .                .          .                   // Accumulate the partial results
+268,435,456 (29.71%) 1 ( 0.05%) 1 ( 0.05%) 1,207,959,552 (98.45%) 201,653,249 (99.96%) 0                0                0          0                   C[row * N + col] += A[row * N + idx] * B[idx * N + col];
+          .          .          .                      .                    .          .                .                .          .           }
+          .          .          .                      .                    .          .                .                .          .           
+          9 ( 0.00%) 2 ( 0.09%) 2 ( 0.10%)             0                    0          0                6 ( 0.00%)       0          0           static float serial_mmul_bench(std::size_t N) {
+          .          .          .                      .                    .          .                .                .          .             // Number Dimensions of our matrix
+          .          .          .                      .                    .          .                .                .          .           
+          .          .          .                      .                    .          .                .                .          .             // Create our random number generators
+          .          .          .                      .                    .          .                .                .          .             std::mt19937 rng;
+          1 ( 0.00%) 0          0                      0                    0          0                0                0          0             rng.seed(std::random_device()());
+          .          .          .                      .                    .          .                .                .          .             std::uniform_real_distribution<float> dist(-10, 10);
+          .          .          .                      .                    .          .                .                .          .           
+          .          .          .                      .                    .          .                .                .          .             // Create input matrices
+          4 ( 0.00%) 0          0                      0                    0          0                2 ( 0.00%)       0          0             float *A = new float[N * N];
+          3 ( 0.00%) 0          0                      0                    0          0                1 ( 0.00%)       0          0             float *B = new float[N * N];
+          6 ( 0.00%) 1 ( 0.05%) 1 ( 0.05%)             0                    0          0                1 ( 0.00%)       0          0             float *C = new float[N * N];
+          .          .          .                      .                    .          .                .                .          .           
+          .          .          .                      .                    .          .                .                .          .             // Initialize them with random values (and C to 0)
+          .          .          .                      .                    .          .                .                .          .             std::generate(A, A + N * N, [&] { return dist(rng); });
+          .          .          .                      .                    .          .                .                .          .             std::generate(B, B + N * N, [&] { return dist(rng); });
+          .          .          .                      .                    .          .                .                .          .             std::generate(C, C + N * N, [&] { return 0.0f; });
+          .          .          .                      .                    .          .                .                .          .           
+          .          .          .                      .                    .          .                .                .          .             // Main benchmark loop
+          .          .          .                      .                    .          .                .                .          .             serial_mmul(A, B, C, N);
+          .          .          .                      .                    .          .                .                .          .           
+          1 ( 0.00%) 0          0                      1 ( 0.00%)           1 ( 0.00%) 0                0                0          0             float output = C[0];
+          .          .          .                      .                    .          .                .                .          .             // Free memory
+          3 ( 0.00%) 0          0                      1 ( 0.00%)           1 ( 0.00%) 0                1 ( 0.00%)       1 ( 0.00%) 0             delete[] A;
+          2 ( 0.00%) 0          0                      0                    0          0                1 ( 0.00%)       0          0             delete[] B;
+          2 ( 0.00%) 0          0                      0                    0          0                1 ( 0.00%)       0          0             delete[] C;
+          .          .          .                      .                    .          .                .                .          .             return output;
+          9 ( 0.00%) 0          0                      7 ( 0.00%)           2 ( 0.00%) 0                0                0          0           }
+          .          .          .                      .                    .          .                .                .          .           
+          3 ( 0.00%) 1 ( 0.05%) 1 ( 0.05%)             0                    0          0                2 ( 0.00%)       0          0           int main(int argc, char* argv[]) {
+          1 ( 0.00%) 0          0                      0                    0          0                1 ( 0.00%)       0          0             float output = serial_mmul_bench(1024);
+          .          .          .                      .                    .          .                .                .          .             std::cout << output << std::endl;
+          .          .          .                      .                    .          .                .                .          .             return 0;
+          7 ( 0.00%) 2 ( 0.09%) 1 ( 0.05%)             4 ( 0.00%)           1 ( 0.00%) 0                1 ( 0.00%)       0          0           }
+
+--------------------------------------------------------------------------------
+-- Auto-annotated source: /usr/include/c++/12/bits/stl_algo.h
+--------------------------------------------------------------------------------
+Ir                 I1mr       ILmr       Dr               D1mr            DLmr       Dw                 D1mw             DLmw             
+
+-- line 4390 ----------------------------------------
+        .          .          .                .               .          .                  .                .                .           	     _Generator __gen)
+        .          .          .                .               .          .                  .                .                .               {
+        .          .          .                .               .          .                  .                .                .                 // concept requirements
+        .          .          .                .               .          .                  .                .                .                 __glibcxx_function_requires(_ForwardIteratorConcept<_ForwardIterator>)
+        .          .          .                .               .          .                  .                .                .                 __glibcxx_function_requires(_GeneratorConcept<_Generator,
+        .          .          .                .               .          .                  .                .                .           	    typename iterator_traits<_ForwardIterator>::value_type>)
+        .          .          .                .               .          .                  .                .                .                 __glibcxx_requires_valid_range(__first, __last);
+        .          .          .                .               .          .                  .                .                .           
+6,817,795 ( 0.75%) 1 ( 0.05%) 1 ( 0.05%) 131,072 ( 0.01%) 65,537 ( 0.03%) 0                  0                0                0                 for (; __first != __last; ++__first)
+2,099,208 ( 0.23%) 1 ( 0.05%) 1 ( 0.05%)       1 ( 0.00%)      1 ( 0.00%) 0          2,097,153 (18.54%) 131,073 (39.72%) 131,072 (66.19%)  	*__first = __gen();
+        .          .          .                .               .          .                  .                .                .               }
+        .          .          .                .               .          .                  .                .                .           
+        .          .          .                .               .          .                  .                .                .             /**
+        .          .          .                .               .          .                  .                .                .              *  @brief Assign the result of a function object to each value in a
+        .          .          .                .               .          .                  .                .                .              *         sequence.
+        .          .          .                .               .          .                  .                .                .              *  @ingroup mutating_algorithms
+        .          .          .                .               .          .                  .                .                .              *  @param  __first  A forward iterator.
+        .          .          .                .               .          .                  .                .                .              *  @param  __n      The length of the sequence.
+-- line 4407 ----------------------------------------
+
+--------------------------------------------------------------------------------
+-- Auto-annotated source: /usr/include/c++/12/bits/random.h
+--------------------------------------------------------------------------------
+Ir                 I1mr       ILmr       Dr                 D1mr       DLmr       Dw                 D1mw       DLmw       
+
+-- line 135 ----------------------------------------
+        .          .          .                  .          .          .                  .          .          .               template<typename _Tp, _Tp __m, _Tp __a, _Tp __c, bool __s>
+        .          .          .                  .          .          .                  .          .          .                 struct _Mod<_Tp, __m, __a, __c, true, __s>
+        .          .          .                  .          .          .                  .          .          .                 {
+        .          .          .                  .          .          .                  .          .          .           	static _Tp
+        .          .          .                  .          .          .                  .          .          .           	__calc(_Tp __x)
+        .          .          .                  .          .          .                  .          .          .           	{
+        .          .          .                  .          .          .                  .          .          .           	  _Tp __res = __a * __x + __c;
+        .          .          .                  .          .          .                  .          .          .           	  if (__m)
+    1,246 ( 0.00%) 0          0                  0          0          0                  0          0          0           	    __res %= __m;
+        .          .          .                  .          .          .                  .          .          .           	  return __res;
+        .          .          .                  .          .          .                  .          .          .           	}
+        .          .          .                  .          .          .                  .          .          .                 };
+        .          .          .                  .          .          .                  .          .          .           
+        .          .          .                  .          .          .                  .          .          .               template<typename _Tp, _Tp __m, _Tp __a = 1, _Tp __c = 0>
+        .          .          .                  .          .          .                  .          .          .                 inline _Tp
+        .          .          .                  .          .          .                  .          .          .                 __mod(_Tp __x)
+        .          .          .                  .          .          .                  .          .          .                 {
+-- line 151 ----------------------------------------
+-- line 186 ----------------------------------------
+        .          .          .                  .          .          .                  .          .          .           	 * into a value in the input domain for the dependent random number
+        .          .          .                  .          .          .                  .          .          .           	 * distribution.
+        .          .          .                  .          .          .                  .          .          .           	 */
+        .          .          .                  .          .          .                  .          .          .           	_DInputType
+        .          .          .                  .          .          .                  .          .          .           	operator()()
+        .          .          .                  .          .          .                  .          .          .           	{
+        .          .          .                  .          .          .                  .          .          .           	  return std::generate_canonical<_DInputType,
+        .          .          .                  .          .          .                  .          .          .           	                            std::numeric_limits<_DInputType>::digits,
+4,194,304 ( 0.46%) 0          0                  0          0          0          2,097,152 (18.54%) 0          0           	                            _Engine>(_M_g);
+        .          .          .                  .          .          .                  .          .          .           	}
+        .          .          .                  .          .          .                  .          .          .           
+        .          .          .                  .          .          .                  .          .          .                 private:
+        .          .          .                  .          .          .                  .          .          .           	_Engine& _M_g;
+        .          .          .                  .          .          .                  .          .          .                 };
+        .          .          .                  .          .          .                  .          .          .           
+        .          .          .                  .          .          .                  .          .          .               template<typename _Sseq>
+        .          .          .                  .          .          .                  .          .          .                 using __seed_seq_generate_t = decltype(
+-- line 202 ----------------------------------------
+-- line 1613 ----------------------------------------
+        .          .          .                  .          .          .                  .          .          .             class random_device
+        .          .          .                  .          .          .                  .          .          .             {
+        .          .          .                  .          .          .                  .          .          .             public:
+        .          .          .                  .          .          .                  .          .          .               /** The type of the generated random value. */
+        .          .          .                  .          .          .                  .          .          .               typedef unsigned int result_type;
+        .          .          .                  .          .          .                  .          .          .           
+        .          .          .                  .          .          .                  .          .          .               // constructors, destructors and member functions
+        .          .          .                  .          .          .                  .          .          .           
+        3 ( 0.00%) 0          0                  0          0          0                  1 ( 0.00%) 1 ( 0.00%) 1 ( 0.00%)      random_device() { _M_init("default"); }
+        .          .          .                  .          .          .                  .          .          .           
+        .          .          .                  .          .          .                  .          .          .               explicit
+        .          .          .                  .          .          .                  .          .          .               random_device(const std::string& __token) { _M_init(__token); }
+        .          .          .                  .          .          .                  .          .          .           
+        .          .          .                  .          .          .                  .          .          .           #if defined _GLIBCXX_USE_DEV_RANDOM
+        .          .          .                  .          .          .                  .          .          .               ~random_device()
+        2 ( 0.00%) 0          0                  0          0          0                  1 ( 0.00%) 0          0               { _M_fini(); }
+        .          .          .                  .          .          .                  .          .          .           #endif
+        .          .          .                  .          .          .                  .          .          .           
+        .          .          .                  .          .          .                  .          .          .               static constexpr result_type
+        .          .          .                  .          .          .                  .          .          .               min()
+        .          .          .                  .          .          .                  .          .          .               { return std::numeric_limits<result_type>::min(); }
+        .          .          .                  .          .          .                  .          .          .           
+        .          .          .                  .          .          .                  .          .          .               static constexpr result_type
+        .          .          .                  .          .          .                  .          .          .               max()
+-- line 1636 ----------------------------------------
+-- line 1643 ----------------------------------------
+        .          .          .                  .          .          .                  .          .          .                 return this->_M_getentropy();
+        .          .          .                  .          .          .                  .          .          .           #else
+        .          .          .                  .          .          .                  .          .          .                 return 0.0;
+        .          .          .                  .          .          .                  .          .          .           #endif
+        .          .          .                  .          .          .                  .          .          .               }
+        .          .          .                  .          .          .                  .          .          .           
+        .          .          .                  .          .          .                  .          .          .               result_type
+        .          .          .                  .          .          .                  .          .          .               operator()()
+        2 ( 0.00%) 0          0                  0          0          0                  1 ( 0.00%) 0          0               { return this->_M_getval(); }
+        .          .          .                  .          .          .                  .          .          .           
+        .          .          .                  .          .          .                  .          .          .               // No copy functions.
+        .          .          .                  .          .          .                  .          .          .               random_device(const random_device&) = delete;
+        .          .          .                  .          .          .                  .          .          .               void operator=(const random_device&) = delete;
+        .          .          .                  .          .          .                  .          .          .           
+        .          .          .                  .          .          .                  .          .          .             private:
+        .          .          .                  .          .          .                  .          .          .           
+        .          .          .                  .          .          .                  .          .          .               void _M_init(const std::string& __token);
+-- line 1659 ----------------------------------------
+-- line 1865 ----------------------------------------
+        .          .          .                  .          .          .                  .          .          .           
+        .          .          .                  .          .          .                  .          .          .                 template<typename _UniformRandomNumberGenerator>
+        .          .          .                  .          .          .                  .          .          .           	result_type
+        .          .          .                  .          .          .                  .          .          .           	operator()(_UniformRandomNumberGenerator& __urng,
+        .          .          .                  .          .          .                  .          .          .           		   const param_type& __p)
+        .          .          .                  .          .          .                  .          .          .           	{
+        .          .          .                  .          .          .                  .          .          .           	  __detail::_Adaptor<_UniformRandomNumberGenerator, result_type>
+        .          .          .                  .          .          .                  .          .          .           	    __aurng(__urng);
+4,194,304 ( 0.46%) 0          0          4,194,304 ( 0.34%) 0          0                  0          0          0           	  return (__aurng() * (__p.b() - __p.a())) + __p.a();
+        .          .          .                  .          .          .                  .          .          .           	}
+        .          .          .                  .          .          .                  .          .          .           
+        .          .          .                  .          .          .                  .          .          .                 template<typename _ForwardIterator,
+        .          .          .                  .          .          .                  .          .          .           	       typename _UniformRandomNumberGenerator>
+        .          .          .                  .          .          .                  .          .          .           	void
+        .          .          .                  .          .          .                  .          .          .           	__generate(_ForwardIterator __f, _ForwardIterator __t,
+        .          .          .                  .          .          .                  .          .          .           		   _UniformRandomNumberGenerator& __urng)
+        .          .          .                  .          .          .                  .          .          .           	{ this->__generate(__f, __t, __urng, _M_param); }
+-- line 1881 ----------------------------------------
+
+--------------------------------------------------------------------------------
+-- Auto-annotated source: /usr/include/c++/12/bits/random.tcc
+--------------------------------------------------------------------------------
+Ir                  I1mr       ILmr       Dr                 D1mr       DLmr       Dw                 D1mw        DLmw        
+
+-- line 322 ----------------------------------------
+         .          .          .                  .          .          .                  .           .           .           	   _UIntType __a, size_t __u, _UIntType __d, size_t __s,
+         .          .          .                  .          .          .                  .           .           .           	   _UIntType __b, size_t __t, _UIntType __c, size_t __l,
+         .          .          .                  .          .          .                  .           .           .           	   _UIntType __f>
+         .          .          .                  .          .          .                  .           .           .               void
+         .          .          .                  .          .          .                  .           .           .               mersenne_twister_engine<_UIntType, __w, __n, __m, __r, __a, __u, __d,
+         .          .          .                  .          .          .                  .           .           .           			    __s, __b, __t, __c, __l, __f>::
+         .          .          .                  .          .          .                  .           .           .               seed(result_type __sd)
+         .          .          .                  .          .          .                  .           .           .               {
+         4 ( 0.00%) 0          0                  0          0          0                  2 ( 0.00%)  1 ( 0.00%)  1 ( 0.00%)        _M_x[0] = __detail::__mod<_UIntType,
+         .          .          .                  .          .          .                  .           .           .           	__detail::_Shift<_UIntType, __w>::__value>(__sd);
+         .          .          .                  .          .          .                  .           .           .           
+     3,741 ( 0.00%) 0          0                  0          0          0                  0           0           0                 for (size_t __i = 1; __i < state_size; ++__i)
+         .          .          .                  .          .          .                  .           .           .           	{
+         .          .          .                  .          .          .                  .           .           .           	  _UIntType __x = _M_x[__i - 1];
+     3,738 ( 0.00%) 0          0                  0          0          0                  0           0           0           	  __x ^= __x >> (__w - 2);
+     1,246 ( 0.00%) 1 ( 0.05%) 1 ( 0.05%)         0          0          0                  0           0           0           	  __x *= __f;
+         .          .          .                  .          .          .                  .           .           .           	  __x += __detail::__mod<_UIntType, __n>(__i);
+     1,246 ( 0.00%) 0          0                  0          0          0              1,246 ( 0.01%) 77 ( 0.02%) 48 ( 0.02%)  	  _M_x[__i] = __detail::__mod<_UIntType,
+         .          .          .                  .          .          .                  .           .           .           	    __detail::_Shift<_UIntType, __w>::__value>(__x);
+         .          .          .                  .          .          .                  .           .           .           	}
+         1 ( 0.00%) 0          0                  0          0          0                  1 ( 0.00%)  1 ( 0.00%)  0                 _M_p = state_size;
+         .          .          .                  .          .          .                  .           .           .               }
+         .          .          .                  .          .          .                  .           .           .           
+         .          .          .                  .          .          .                  .           .           .             template<typename _UIntType,
+         .          .          .                  .          .          .                  .           .           .           	   size_t __w, size_t __n, size_t __m, size_t __r,
+         .          .          .                  .          .          .                  .           .           .           	   _UIntType __a, size_t __u, _UIntType __d, size_t __s,
+         .          .          .                  .          .          .                  .           .           .           	   _UIntType __b, size_t __t, _UIntType __c, size_t __l,
+         .          .          .                  .          .          .                  .           .           .           	   _UIntType __f>
+         .          .          .                  .          .          .                  .           .           .               template<typename _Sseq>
+-- line 350 ----------------------------------------
+-- line 396 ----------------------------------------
+         .          .          .                  .          .          .                  .           .           .               void
+         .          .          .                  .          .          .                  .           .           .               mersenne_twister_engine<_UIntType, __w, __n, __m, __r, __a, __u, __d,
+         .          .          .                  .          .          .                  .           .           .           			    __s, __b, __t, __c, __l, __f>::
+         .          .          .                  .          .          .                  .           .           .               _M_gen_rand(void)
+         .          .          .                  .          .          .                  .           .           .               {
+         .          .          .                  .          .          .                  .           .           .                 const _UIntType __upper_mask = (~_UIntType()) << __r;
+         .          .          .                  .          .          .                  .           .           .                 const _UIntType __lower_mask = ~__upper_mask;
+         .          .          .                  .          .          .                  .           .           .           
+   386,515 ( 0.04%) 2 ( 0.09%) 2 ( 0.10%)         0          0          0                  0           0           0                 for (size_t __k = 0; __k < (__n - __m); ++__k)
+         .          .          .                  .          .          .                  .           .           .                   {
+   594,897 ( 0.07%) 0          0            194,938 ( 0.02%) 0          0                  0           0           0           	  _UIntType __y = ((_M_x[__k] & __upper_mask)
+   211,743 ( 0.02%) 0          0            194,938 ( 0.02%) 0          0                  0           0           0           			   | (_M_x[__k + 1] & __lower_mask));
+   779,752 ( 0.09%) 0          0            194,938 ( 0.02%) 0          0            194,938 ( 1.72%)  0           0           	  _M_x[__k] = (_M_x[__k + __m] ^ (__y >> 1)
+   625,146 ( 0.07%) 3 ( 0.14%) 3 ( 0.15%)         0          0          0                  0           0           0           		       ^ ((__y & 0x01) ? __a : 0));
+         .          .          .                  .          .          .                  .           .           .                   }
+         .          .          .                  .          .          .                  .           .           .           
+   665,478 ( 0.07%) 0          0                  0          0          0                  0           0           0                 for (size_t __k = (__n - __m); __k < (__n - 1); ++__k)
+         .          .          .                  .          .          .                  .           .           .           	{
+   668,839 ( 0.07%) 0          0            336,100 ( 0.03%) 0          0                  0           0           0           	  _UIntType __y = ((_M_x[__k] & __upper_mask)
+   668,839 ( 0.07%) 0          0            336,100 ( 0.03%) 1 ( 0.00%) 1 ( 0.01%)         0           0           0           			   | (_M_x[__k + 1] & __lower_mask));
+ 1,330,956 ( 0.15%) 0          0            332,739 ( 0.03%) 0          0            332,739 ( 2.94%)  0           0           	  _M_x[__k] = (_M_x[__k + (__m - __n)] ^ (__y >> 1)
+ 1,011,661 ( 0.11%) 1 ( 0.05%) 1 ( 0.05%)     3,361 ( 0.00%) 0          0                  0           0           0           		       ^ ((__y & 0x01) ? __a : 0));
+         .          .          .                  .          .          .                  .           .           .           	}
+         .          .          .                  .          .          .                  .           .           .           
+    10,083 ( 0.00%) 0          0              3,361 ( 0.00%) 0          0                  0           0           0                 _UIntType __y = ((_M_x[__n - 1] & __upper_mask)
+    10,083 ( 0.00%) 0          0              3,361 ( 0.00%) 0          0                  0           0           0           		       | (_M_x[0] & __lower_mask));
+    13,444 ( 0.00%) 0          0              3,361 ( 0.00%) 0          0              3,361 ( 0.03%)  0           0                 _M_x[__n - 1] = (_M_x[__m - 1] ^ (__y >> 1)
+    10,083 ( 0.00%) 0          0                  0          0          0                  0           0           0           		       ^ ((__y & 0x01) ? __a : 0));
+         .          .          .                  .          .          .                  .           .           .                 _M_p = 0;
+    10,083 ( 0.00%) 0          0                  0          0          0                  0           0           0               }
+         .          .          .                  .          .          .                  .           .           .           
+         .          .          .                  .          .          .                  .           .           .             template<typename _UIntType, size_t __w,
+         .          .          .                  .          .          .                  .           .           .           	   size_t __n, size_t __m, size_t __r,
+         .          .          .                  .          .          .                  .           .           .           	   _UIntType __a, size_t __u, _UIntType __d, size_t __s,
+         .          .          .                  .          .          .                  .           .           .           	   _UIntType __b, size_t __t, _UIntType __c, size_t __l,
+         .          .          .                  .          .          .                  .           .           .           	   _UIntType __f>
+         .          .          .                  .          .          .                  .           .           .               void
+         .          .          .                  .          .          .                  .           .           .               mersenne_twister_engine<_UIntType, __w, __n, __m, __r, __a, __u, __d,
+-- line 433 ----------------------------------------
+-- line 450 ----------------------------------------
+         .          .          .                  .          .          .                  .           .           .               typename
+         .          .          .                  .          .          .                  .           .           .               mersenne_twister_engine<_UIntType, __w, __n, __m, __r, __a, __u, __d,
+         .          .          .                  .          .          .                  .           .           .           			    __s, __b, __t, __c, __l, __f>::result_type
+         .          .          .                  .          .          .                  .           .           .               mersenne_twister_engine<_UIntType, __w, __n, __m, __r, __a, __u, __d,
+         .          .          .                  .          .          .                  .           .           .           			    __s, __b, __t, __c, __l, __f>::
+         .          .          .                  .          .          .                  .           .           .               operator()()
+         .          .          .                  .          .          .                  .           .           .               {
+         .          .          .                  .          .          .                  .           .           .                 // Reload the vector - cost is O(n) amortized over n calls.
+ 6,294,817 ( 0.70%) 2 ( 0.09%) 1 ( 0.05%) 2,097,152 ( 0.17%) 0          0                  0           0           0                 if (_M_p >= state_size)
+         .          .          .                  .          .          .                  .           .           .           	_M_gen_rand();
+         .          .          .                  .          .          .                  .           .           .           
+         .          .          .                  .          .          .                  .           .           .                 // Calculate o(x(i)).
+ 6,284,734 ( 0.70%) 0          0          2,093,791 ( 0.17%) 0          0          2,097,152 (18.54%)  0           0                 result_type __z = _M_x[_M_p++];
+ 8,388,608 ( 0.93%) 1 ( 0.05%) 1 ( 0.05%)         0          0          0                  0           0           0                 __z ^= (__z >> __u) & __d;
+ 8,388,608 ( 0.93%) 0          0                  0          0          0                  0           0           0                 __z ^= (__z << __s) & __b;
+ 8,388,608 ( 0.93%) 0          0                  0          0          0                  0           0           0                 __z ^= (__z << __t) & __c;
+ 4,194,304 ( 0.46%) 0          0                  0          0          0                  0           0           0                 __z ^= (__z >> __l);
+         .          .          .                  .          .          .                  .           .           .           
+         .          .          .                  .          .          .                  .           .           .                 return __z;
+         .          .          .                  .          .          .                  .           .           .               }
+         .          .          .                  .          .          .                  .           .           .           
+         .          .          .                  .          .          .                  .           .           .             template<typename _UIntType, size_t __w,
+         .          .          .                  .          .          .                  .           .           .           	   size_t __n, size_t __m, size_t __r,
+         .          .          .                  .          .          .                  .           .           .           	   _UIntType __a, size_t __u, _UIntType __d, size_t __s,
+         .          .          .                  .          .          .                  .           .           .           	   _UIntType __b, size_t __t, _UIntType __c, size_t __l,
+-- line 474 ----------------------------------------
+-- line 3346 ----------------------------------------
+         .          .          .                  .          .          .                  .           .           .           	  __begin[__kqn] ^= __r4;
+         .          .          .                  .          .          .                  .           .           .           	  __begin[__kn] = __r4;
+         .          .          .                  .          .          .                  .           .           .           	}
+         .          .          .                  .          .          .                  .           .           .               }
+         .          .          .                  .          .          .                  .           .           .           
+         .          .          .                  .          .          .                  .           .           .             template<typename _RealType, size_t __bits,
+         .          .          .                  .          .          .                  .           .           .           	   typename _UniformRandomNumberGenerator>
+         .          .          .                  .          .          .                  .           .           .               _RealType
+ 2,097,152 ( 0.23%) 0          0                  0          0          0                  0           0           0               generate_canonical(_UniformRandomNumberGenerator& __urng)
+         .          .          .                  .          .          .                  .           .           .               {
+         .          .          .                  .          .          .                  .           .           .                 static_assert(std::is_floating_point<_RealType>::value,
+         .          .          .                  .          .          .                  .           .           .           		    "template argument must be a floating point type");
+         .          .          .                  .          .          .                  .           .           .           
+         .          .          .                  .          .          .                  .           .           .                 const size_t __b
+         .          .          .                  .          .          .                  .           .           .           	= std::min(static_cast<size_t>(std::numeric_limits<_RealType>::digits),
+         .          .          .                  .          .          .                  .           .           .                              __bits);
+         .          .          .                  .          .          .                  .           .           .                 const long double __r = static_cast<long double>(__urng.max())
+         .          .          .                  .          .          .                  .           .           .           			    - static_cast<long double>(__urng.min()) + 1.0L;
+         .          .          .                  .          .          .                  .           .           .                 const size_t __log2r = std::log(__r) / std::log(2.0L);
+         .          .          .                  .          .          .                  .           .           .                 const size_t __m = std::max<size_t>(1UL,
+         .          .          .                  .          .          .                  .           .           .           					  (__b + __log2r - 1UL) / __log2r);
+         .          .          .                  .          .          .                  .           .           .                 _RealType __ret;
+         .          .          .                  .          .          .                  .           .           .                 _RealType __sum = _RealType(0);
+         .          .          .                  .          .          .                  .           .           .                 _RealType __tmp = _RealType(1);
+ 2,097,152 ( 0.23%) 0          0                  0          0          0                  0           0           0                 for (size_t __k = __m; __k != 0; --__k)
+         .          .          .                  .          .          .                  .           .           .           	{
+10,489,121 ( 1.16%) 1 ( 0.05%) 1 ( 0.05%)         0          0          0                  0           0           0           	  __sum += _RealType(__urng() - __urng.min()) * __tmp;
+         .          .          .                  .          .          .                  .           .           .           	  __tmp *= __r;
+         .          .          .                  .          .          .                  .           .           .           	}
+ 2,097,152 ( 0.23%) 0          0          2,097,152 ( 0.17%) 0          0                  0           0           0                 __ret = __sum / __tmp;
+         .          .          .                  .          .          .                  .           .           .                 if (__builtin_expect(__ret >= _RealType(1), 0))
+         .          .          .                  .          .          .                  .           .           .           	{
+         .          .          .                  .          .          .                  .           .           .           #if _GLIBCXX_USE_C99_MATH_TR1
+ 6,291,456 ( 0.70%) 0          0          4,194,304 ( 0.34%) 0          0                  0           0           0           	  __ret = std::nextafter(_RealType(1), _RealType(0));
+         .          .          .                  .          .          .                  .           .           .           #else
+         .          .          .                  .          .          .                  .           .           .           	  __ret = _RealType(1)
+         .          .          .                  .          .          .                  .           .           .           	    - std::numeric_limits<_RealType>::epsilon() / _RealType(2);
+         .          .          .                  .          .          .                  .           .           .           #endif
+         .          .          .                  .          .          .                  .           .           .           	}
+         .          .          .                  .          .          .                  .           .           .                 return __ret;
+ 2,097,152 ( 0.23%) 0          0          2,097,152 ( 0.17%) 0          0                  0           0           0               }
+         .          .          .                  .          .          .                  .           .           .           
+         .          .          .                  .          .          .                  .           .           .           _GLIBCXX_END_NAMESPACE_VERSION
+         .          .          .                  .          .          .                  .           .           .           } // namespace
+         .          .          .                  .          .          .                  .           .           .           
+         .          .          .                  .          .          .                  .           .           .           #endif
+
+--------------------------------------------------------------------------------
+The following files chosen for auto-annotation could not be found:
+--------------------------------------------------------------------------------
+  ./string/../sysdeps/x86_64/multiarch/memset-vec-unaligned-erms.S
+
+--------------------------------------------------------------------------------
+Ir                   I1mr        ILmr        Dr                     D1mr                 DLmr       Dw                 D1mw             DLmw             
+--------------------------------------------------------------------------------
+897,521,277 (99.33%) 21 ( 0.96%) 19 ( 0.92%) 1,226,467,690 (99.96%) 201,718,793 (99.99%) 1 ( 0.01%) 6,954,836 (61.50%) 262,226 (79.47%) 131,122 (66.22%)  events annotated
+
