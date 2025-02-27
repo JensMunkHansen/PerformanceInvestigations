@@ -52,3 +52,4 @@ add_subdirectory(blocked_column)
 add_subdirectory(multi_output)
 add_subdirectory(mkl)
 # L1 cache, transpose and multiply
+add_subdirectory(sort)
