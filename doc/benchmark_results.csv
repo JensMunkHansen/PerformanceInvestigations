@@ -3,7 +3,7 @@ Program_Name;Benchmark;Time;CPU;Iterations
 ./build/baseline/mmul_bench;Run;on(16;X4600;MHz
 ./build/baseline/mmul_bench;CPU;Caches:;;
 ./build/baseline/mmul_bench;Load;Average:0.80,;1.48,1.30;
-./build/baseline/mmul_bench;Benchmark;TimeCPU;Iterations;
+./build/baseline/mmul_bench;Benchmark;Size;Time;CPU;Iterations;
 ./build/baseline/mmul_bench;serial_mmul_bench/512;114ms;114ms;62
 ./build/baseline/mmul_bench;serial_mmul_bench/1024;1921ms;1921ms;4
 ./build/baseline/mmul_bench;serial_mmul_bench/1536;6478ms;6478ms;1
@@ -14,7 +14,7 @@ Program_Name;Benchmark;Time;CPU;Iterations
 ./build/baseline_nonpower/mmul_bench;Run;on(16;X4600;MHz
 ./build/baseline_nonpower/mmul_bench;CPU;Caches:;;
 ./build/baseline_nonpower/mmul_bench;Load;Average:5.61,;2.51,1.65;
-./build/baseline_nonpower/mmul_bench;Benchmark;TimeCPU;Iterations;
+./build/baseline_nonpower/mmul_bench;Benchmark;Size;Time;CPU;Iterations;
 ./build/baseline_nonpower/mmul_bench;serial_mmul_bench/528;121ms;121ms;58
 ./build/baseline_nonpower/mmul_bench;serial_mmul_bench/1040;954ms;954ms;7
 ./build/baseline_nonpower/mmul_bench;serial_mmul_bench/1552;3211ms;3211ms;2
@@ -25,7 +25,7 @@ Program_Name;Benchmark;Time;CPU;Iterations
 ./build/blocked/mmul_bench;Run;on(16;X4600;MHz
 ./build/blocked/mmul_bench;CPU;Caches:;;
 ./build/blocked/mmul_bench;Load;Average:7.78,;3.40,1.99;
-./build/blocked/mmul_bench;Benchmark;TimeCPU;Iterations;
+./build/blocked/mmul_bench;Benchmark;Size;Time;CPU;Iterations;
 ./build/blocked/mmul_bench;blocked_mmul_bench/512;22.4ms;22.4ms;189
 ./build/blocked/mmul_bench;blocked_mmul_bench/1024;241ms;241ms;17
 ./build/blocked/mmul_bench;blocked_mmul_bench/1536;744ms;744ms;5
@@ -39,7 +39,7 @@ Program_Name;Benchmark;Time;CPU;Iterations
 ./build/blocked_column/mmul_bench;Run;on(16;X4600;MHz
 ./build/blocked_column/mmul_bench;CPU;Caches:;;
 ./build/blocked_column/mmul_bench;Load;Average:7.04,;3.77,2.19;
-./build/blocked_column/mmul_bench;Benchmark;TimeCPU;Iterations;
+./build/blocked_column/mmul_bench;Benchmark;Size;Time;CPU;Iterations;
 ./build/blocked_column/mmul_bench;blocked_column_aligned_mmul_bench/512;19.6ms;19.6ms;210
 ./build/blocked_column/mmul_bench;blocked_column_aligned_mmul_bench/1024;170ms;170ms;26
 ./build/blocked_column/mmul_bench;blocked_column_aligned_mmul_bench/1536;563ms;563ms;7
@@ -53,7 +53,7 @@ Program_Name;Benchmark;Time;CPU;Iterations
 ./build/blocked_column_multi_output/mmul_bench;Run;on(16;X4600;MHz
 ./build/blocked_column_multi_output/mmul_bench;CPU;Caches:;;
 ./build/blocked_column_multi_output/mmul_bench;Load;Average:7.72,;4.28,2.44;
-./build/blocked_column_multi_output/mmul_bench;Benchmark;TimeCPU;Iterations;
+./build/blocked_column_multi_output/mmul_bench;Benchmark;Size;Time;CPU;Iterations;
 ./build/blocked_column_multi_output/mmul_bench;blocked_column_multi_output_aligned_mmul_bench/512;5.32ms;5.32ms;699
 ./build/blocked_column_multi_output/mmul_bench;blocked_column_multi_output_aligned_mmul_bench/1024;62.7ms;62.7ms;67
 ./build/blocked_column_multi_output/mmul_bench;blocked_column_multi_output_aligned_mmul_bench/1536;151ms;151ms;28
@@ -64,7 +64,7 @@ Program_Name;Benchmark;Time;CPU;Iterations
 ./build/mkl/mmul_bench;Run;on(16;X4600;MHz
 ./build/mkl/mmul_bench;CPU;Caches:;;
 ./build/mkl/mmul_bench;Load;Average:8.58,;4.79,2.67;
-./build/mkl/mmul_bench;Benchmark;TimeCPU;Iterations;
+./build/mkl/mmul_bench;Benchmark;Size;Time;CPU;Iterations;
 ./build/mkl/mmul_bench;blocked_aligned_mmul_bench/512;0.514ms;0.514ms;8690
 ./build/mkl/mmul_bench;blocked_aligned_mmul_bench/1024;3.99ms;3.99ms;1085
 ./build/mkl/mmul_bench;blocked_aligned_mmul_bench/1536;13.0ms;13.0ms;325
