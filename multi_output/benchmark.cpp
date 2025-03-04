@@ -93,9 +93,9 @@ static void blocked_column_multi_output_aligned_mmul_bench(benchmark::State& s)
   std::uniform_real_distribution<float> dist(-10, 10);
 
   // Create input matrices
-  float* A = static_cast<float*>(aligned_alloc(64, N * N * sizeof(float)));
-  float* B = static_cast<float*>(aligned_alloc(64, N * N * sizeof(float)));
-  float* C = static_cast<float*>(aligned_alloc(64, N * N * sizeof(float)));
+  float* A = static_cast<float*>(ALIGNED_ALLOC(64, N * N * sizeof(float)));
+  float* B = static_cast<float*>(ALIGNED_ALLOC(64, N * N * sizeof(float)));
+  float* C = static_cast<float*>(ALIGNED_ALLOC(64, N * N * sizeof(float)));
 
   // Initialize them with random values (and C to 0)
   std::generate(A, A + N * N, [&] { return dist(rng); });
@@ -109,9 +109,9 @@ static void blocked_column_multi_output_aligned_mmul_bench(benchmark::State& s)
   }
 
   // Free memory
-  free(A);
-  free(B);
-  free(C);
+  ALIGNED_FREE(A);
+  ALIGNED_FREE(B);
+  ALIGNED_FREE(C);
 }
 BENCHMARK(blocked_column_multi_output_aligned_mmul_bench)
   ->Arg(1 * BENCH_SCALE * numThreads * 16)
@@ -131,9 +131,9 @@ static void parallel_blocked_column_multi_output_mmul_bench(benchmark::State& s)
   std::uniform_real_distribution<float> dist(-10, 10);
 
   // Create input matrices
-  float* A = static_cast<float*>(aligned_alloc(64, N * N * sizeof(float)));
-  float* B = static_cast<float*>(aligned_alloc(64, N * N * sizeof(float)));
-  float* C = static_cast<float*>(aligned_alloc(64, N * N * sizeof(float)));
+  float* A = static_cast<float*>(ALIGNED_ALLOC(64, N * N * sizeof(float)));
+  float* B = static_cast<float*>(ALIGNED_ALLOC(64, N * N * sizeof(float)));
+  float* C = static_cast<float*>(ALIGNED_ALLOC(64, N * N * sizeof(float)));
 
   // Initialize them with random values (and C to 0)
   std::generate(A, A + N * N, [&] { return dist(rng); });
@@ -171,9 +171,9 @@ static void parallel_blocked_column_multi_output_mmul_bench(benchmark::State& s)
   }
 
   // Free memory
-  free(A);
-  free(B);
-  free(C);
+  ALIGNED_FREE(A);
+  ALIGNED_FREE(B);
+  ALIGNED_FREE(C);
 }
 BENCHMARK(parallel_blocked_column_multi_output_mmul_bench)
   ->Arg(1 * BENCH_SCALE * numThreads * 16)
