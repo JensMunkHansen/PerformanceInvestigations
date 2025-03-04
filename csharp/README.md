@@ -25,3 +25,11 @@ C++ (before we optimize further)
 1536 6478ms
 1536  514ms
 
+Name;C++;C#;AOT
+Serial 512;114ms;265ms;274ms
+Serial 1024;1921ms;2353ms;2337ms
+Serial 1536;6478ms;7942ms;7812ms
+
+Par 512;12.3ms;33.88ms;32.34ms
+Par 1024;172ms;280ms;266ms
+Par 1536;514ms;1488ms;925ms
