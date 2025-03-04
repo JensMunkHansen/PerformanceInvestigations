@@ -129,9 +129,9 @@ static void parallel_mmul_bench(benchmark::State& s)
   }
 
   // Free memory
-  free(A);
-  free(B);
-  free(C);
+  delete[] A;
+  delete[] B;
+  delete[] C;
 }
 BENCHMARK(parallel_mmul_bench)
   ->Arg(1 * BENCH_SCALE * 16 * numThreads + 16)
