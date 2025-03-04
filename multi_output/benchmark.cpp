@@ -10,6 +10,10 @@
 #include <thread>
 #include <vector>
 
+#ifdef _WIN32
+#define aligned_alloc _aligned_malloc
+#endif
+
 unsigned int numThreads = std::thread::hardware_concurrency();
 
 // Blocked column multi-output serial implementation
