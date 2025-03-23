@@ -1,0 +1,40 @@
+cmake -B build -DCMAKE_CXX_FLAGS="-O3 -march=native -flto -fprofile-generate"
+cmake --build build --config Release -j$(nproc)
+
+llvm-profdata merge -output=default.profdata default.profraw
+
+cmake -B build -DCMAKE_CXX_FLAGS="-O3 -march=native -flto -fprofile-use=default.profdata -fprofile-correction"
+cmake --build build --config Release -j$(nproc)
+
+
+# BOLT
+git clone --depth=1 https://github.com/llvm/llvm-project.git
+cd llvm-project
+
+cmake -S llvm -B build -G Ninja \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DLLVM_ENABLE_PROJECTS="bolt" \
+    -DLLVM_TARGETS_TO_BUILD="X86"
+
+cmake --build build --target bolt
+
+clang++ -O3 -march=native -flto -ffast-math -funroll-loops \
+-ffunction-sections -Wl,--emit-relocs -Wl,--build-id \
+-o my_program my_program.cpp
+
+perf record -e cycles:u -j any,u -- ./my_program
+
+perf2bolt my_program -p perf.data -o my_program.fdata
+
+llvm-bolt my_program -o my_program.bolt --data=my_program.fdata
+
+add_custom_command(TARGET my_program POST_BUILD
+    COMMAND llvm-bolt my_program -o my_program.bolt --data=my_program.fdata
+    COMMENT "Optimizing binary with BOLT"
+)
+
+
+g++ -O3 -march=native -flto -ffast-math -funroll-loops \
+    -ffunction-sections -Wl,--emit-relocs -Wl,--build-id \
+    -o my_gcc_program my_gcc_program.cpp
+

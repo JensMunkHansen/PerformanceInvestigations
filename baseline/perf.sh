@@ -23,3 +23,9 @@ see sxren shot 2.
 
 perf record -e cycles,stalled-cycles-backend ./baseline
 perf report
+
+
+perf stat -e cycles,instructions,cache-misses,LLC-load-misses ./baseline
+
+
+perf record -e cycles,instructions,cache-references,cache-misses,LLC-loads,LLC-load-misses ./baseline

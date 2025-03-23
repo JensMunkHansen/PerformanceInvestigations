@@ -9,11 +9,6 @@
 #include <thread>
 #include <vector>
 
-#ifdef _WIN32
-#define aligned_alloc _aligned_alloc
-#endif
-
-
 unsigned int numThreads = std::thread::hardware_concurrency();
 
 // Blocked serial implementation
