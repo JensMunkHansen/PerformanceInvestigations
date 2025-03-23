@@ -57,9 +57,19 @@
             "configuration": "Release"
         },
         {
+            "name": "RelWithDebInfo",
+            "configurePreset": "linux",
+            "configuration": "RelWithDebInfo"
+        },
+        {
             "name": "Asan",
             "configurePreset": "linux",
             "configuration": "Asan"
+        },
+        {
+            "name": "RelWithDebInfo-gcc",
+            "configurePreset": "linux-gcc",
+            "configuration": "RelWithDebInfo"
         },
         {
             "name": "Debug-gcc",
