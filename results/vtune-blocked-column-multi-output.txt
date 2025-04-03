@@ -1,0 +1,43 @@
+vtune: Executing actions 75 % Generating a report                              Elapsed Time: 5.055s
+    CPU Time: 34.515s
+    Memory Bound: 5.8% of Pipeline Slots
+        L1 Bound: 12.6% of Clockticks
+        L2 Bound: 1.5% of Clockticks
+        L3 Bound: 1.0% of Clockticks
+        DRAM Bound: 0.1% of Clockticks
+            DRAM Bandwidth Bound: 0.0% of Elapsed Time
+        Store Bound: 0.0% of Clockticks
+    Loads: 115,561,766,749
+    Stores: 46,504,995,108
+    LLC Miss Count: 0
+    Average Latency (cycles): 22
+    Total Thread Count: 1,885
+    Paused Time: 0s
+
+Bandwidth Utilization
+Bandwidth Domain  Platform Maximum  Observed Maximum  Average  % of Elapsed Time with High BW Utilization(%)
+----------------  ----------------  ----------------  -------  ---------------------------------------------
+DRAM, GB/sec      45                          23.600    3.444                                           0.0%
+Collection and Platform Info
+    Application Command Line: ./blocked_column_multi_output 
+    User Name: root
+    Operating System: 6.1.0-18-amd64 12.10
+    Computer Name: DebianX1Extreme
+    Result Size: 235.5 MB 
+    Collection start time: 16:44:32 03/04/2025 UTC
+    Collection stop time: 16:44:37 03/04/2025 UTC
+    Collector Type: Event-based sampling driver
+    CPU
+        Name: Intel(R) microarchitecture code named Tigerlake H
+        Frequency: 2.304 GHz
+        Logical CPU Count: 16
+        Max DRAM Single-Package Bandwidth: 45.000 GB/s
+        Cache Allocation Technology
+            Level 2 capability: available
+            Level 3 capability: not detected
+
+If you want to skip descriptions of detected performance issues in the report,
+enter: vtune -report summary -report-knob show-issues=false -r <my_result_dir>.
+Alternatively, you may view the report in the csv format: vtune -report
+<report_name> -format=csv.
+vtune: Executing actions 100 % done                                            
