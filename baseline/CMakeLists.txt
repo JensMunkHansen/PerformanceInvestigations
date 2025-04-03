@@ -21,6 +21,7 @@ else()
   target_link_libraries(${TARGET_NAME} PUBLIC build)
   # Link against benchmark and pthread
   target_link_libraries(${TARGET_NAME} PRIVATE benchmark::benchmark Threads::Threads)
+  sps_link_optimization(${TARGET_NAME})
 endif()
 
 if (TARGET_NAMES_EQUAL)
