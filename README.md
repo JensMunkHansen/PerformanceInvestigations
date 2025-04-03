@@ -26,19 +26,65 @@ In the *Individual Components* tab, check
 
 * VerySleepy (https://schellcode.github.io/profiling-and-visualization)
 * KCachegrind
+* [Intel VTune](./VTuneWindows.md)
+ - Just use the GUI
+ - Command line
+```dos
+vtune -collect hotspots -result-dir vtune_data ./your_program.exe
+vtune -collect memory-access -result-dir vtune_data ./your_program.exe
+```
 
+## Profiling on Linux (native)
+* [Intel VTune](./VTuneLinux.md)
+``` bash
+vtune -collect memory-access -result-dir vtune_data ./your_program
+vtune -collect memory-access -result-dir vtune_data ./your_program
+```
+
+## Simulation on Windows
+
+* [Open source (cross-platform) valgrind](https://sourceforge.net/projects/qcachegrindwin?utm_source=chatgpt.com)
+ - Only possible to simulate L1 + LLC
+ - Recent version, 2020, https://sourceforge.net/projects/qcachegrind-windows-2020-build/
+
+## Simulation on Linux (and WSL2)
+* Cachegrind
+``` bash
 goto /bin/Debug/
 valgrind --tool=cachegrind ./baseline_nonpower_grind
 valgrind --tool=callgrind --dump-instr=yes ./baseline_nonpower_grind
 cg_annotate on output
-
-valgrind --tool=callgrind \
+```
+* Cachegrind (GUI)
+ - KCachegrind
+ 
+* Callgrind
+``` bash
+valgrind --tool=cachegrind \
   --cache-sim=yes \
   --cache=I1:<size>,<associativity>,<line_size> \
   --cache=D1:<size>,<associativity>,<line_size> \
   --cache=LL:<size>,<associativity>,<line_size> \
-
+```
+e.g.
+``` bash
 valgrind --tool=cachegrind --cache-sim=yes   --I1=32768,8,64   --D1=32768,8,64   --LL=1048576,16,64
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 Percent of samples (we were at this instruction)

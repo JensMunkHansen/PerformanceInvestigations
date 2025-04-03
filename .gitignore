@@ -36,3 +36,4 @@ _deps/
 .vs
 CMakePresets.json
 out/
+.cache/
