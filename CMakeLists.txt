@@ -51,8 +51,10 @@ endif()
 add_subdirectory(blocked)
 add_subdirectory(blocked_column) 
 add_subdirectory(multi_output)
+add_subdirectory(multi_output_accumulate)
 add_subdirectory(mkl)
-
+# CSharp examples
+#add_subdirectory(csharp)
 
 
 # L1 cache, transpose and multiply
