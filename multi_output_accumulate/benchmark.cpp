@@ -265,7 +265,34 @@ bool run_correctness_check(std::size_t N)
   blocked_column_multi_output_mmul(A, B, C_ref, N);
 
   // Run optimized
-  blocked_column_multi_output_mmul_accumulate(A, B, C_test, N);
+  // blocked_column_multi_output_mmul_accumulate(A, B, C_test, N);
+
+  std::size_t num_threads = numThreads;
+  std::vector<std::thread> threads;
+  threads.reserve(num_threads);
+
+  // Calculate values to pass to threads
+  // Assumed to be divisable by num_threads (evenly)
+  std::size_t n_cols = N / num_threads;
+
+  // Launch threads
+  std::size_t start_col = 0;
+  for (std::size_t i = 0; i < num_threads; i++)
+  {
+    auto end_col = start_col + n_cols;
+    threads.emplace_back(
+      [&] {
+        blocked_column_multi_output_parallel_mmul_accumulate(A, B, C_test, N, start_col, end_col);
+      });
+    start_col += n_cols;
+  }
+
+  // Wait for all threads to complete
+  for (auto& t : threads)
+    t.join();
+
+  // Clear the threads each iteration of the benchmark
+  threads.clear();
 
   bool ok = matrices_are_close(C_ref, C_test, N);
   std::cout << (ok ? "✅ Matrices match within error tolerance.\n" : "❌ Matrices do NOT match.\n");

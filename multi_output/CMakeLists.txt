@@ -24,6 +24,8 @@ else()
   add_executable(${TARGET_NAME} benchmark.cpp)
   # Set compiler flags for optimization and standards
   target_link_libraries(${TARGET_NAME} PUBLIC build)
+  sps_link_optimization(${TARGET_NAME})
+  
   # Link against benchmark and pthread
   target_link_libraries(${TARGET_NAME} PRIVATE benchmark::benchmark Threads::Threads)
 endif()
