@@ -30,6 +30,34 @@ else()
   target_link_libraries(${TARGET_NAME} PRIVATE benchmark::benchmark Threads::Threads)
 endif()
 
+if (NOT EMSCRIPTEN)
+  set(TARGET_NAME blocked_column_multi_output_grind)
+  add_executable(${TARGET_NAME} grind.cpp)
+  target_link_libraries(${TARGET_NAME} PUBLIC build)
+  target_include_directories(${TARGET_NAME} PRIVATE "${PROJECT_SOURCE_DIR}/linux")
+#  set_target_properties(${TARGET_NAME} PROPERTIES
+#    RUNTIME_OUTPUT_NAME grind)
+
+  # cmake .. -DCMAKE_BUILD_TYPE=Release
+  # make -f baseline_nonpower/CMakeFiles/baseline_nonpower_grind.dir/build.make baseline_nonpower/CMakeFiles/baseline_nonpower_grind.dir/grind.cpp.s
+  # find . -name \*.s | xargs -i -t less {}
+    if ("${C_COMPILER_ID}" STREQUAL "Clang")
+      add_custom_command(
+        TARGET ${TARGET_NAME} POST_BUILD
+        COMMAND llvm-objdump -d $<TARGET_FILE:${TARGET_NAME}> > $<TARGET_FILE_DIR:${TARGET_NAME}>/grind.S
+        COMMENT "Generating assembly output (.S)"
+      )
+    elseif(NOT DEFINED MSVC)
+      add_custom_command(
+        TARGET ${TARGET_NAME} POST_BUILD
+        COMMAND objdump -d $<TARGET_FILE:${TARGET_NAME}> > $<TARGET_FILE_DIR:${TARGET_NAME}>/grind.S
+        COMMENT "Generating assembly output (.S)"
+      )
+    endif()
+endif()
+
+
+
 if (TARGET_NAMES_EQUAL)
   set_target_properties(${TARGET_NAME} PROPERTIES
     RUNTIME_OUTPUT_NAME mmul_bench

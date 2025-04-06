@@ -43,18 +43,19 @@ add_subdirectory(baseline)
 add_subdirectory(baseline_nonpower)
 add_subdirectory(working)
 
-if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-  return()
-endif()
-
 # Needs to be tested on windows
 add_subdirectory(blocked)
 add_subdirectory(blocked_column) 
 add_subdirectory(multi_output)
 add_subdirectory(multi_output_accumulate)
 add_subdirectory(mkl)
+
 # CSharp examples
-#add_subdirectory(csharp)
+if(NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
+#  add_subdirectory(csharp)
+endif()
+
+
 
 
 # L1 cache, transpose and multiply
