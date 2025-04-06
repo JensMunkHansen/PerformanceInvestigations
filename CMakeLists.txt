@@ -51,7 +51,7 @@ add_subdirectory(multi_output_accumulate)
 add_subdirectory(mkl)
 
 # CSharp examples
-if(NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
+if(NOT EMSCRIPTEN AND NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
 #  add_subdirectory(csharp)
 endif()
 
