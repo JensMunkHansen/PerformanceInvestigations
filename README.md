@@ -20,12 +20,27 @@ In the *Individual Components* tab, check
  * Copy `CMakeClangPresets.json` to `CMakePresets.json` for Clang usage.
  * Copy `CMakeMSVCPresets.json` to `CMakePresets.json` for MSVC usage.
  * Open folder (this folder in Visual Studio)
- 
+
+CSharp examples are added for reference - just code, no solution is
+provided. Two options exists
+
+1. Create your own C\# solution and steel the code (preferred way)
+
+2. Build the solution from command line. The solution was made for Linux (performance test on same hardware)
+```dos
+cd csharp
+mkdir build
+cd build
+call "C:\Program Files\Microsoft Visual Studio\2022\Professional\VC\Auxiliary\Build\vcvarsall.bat" x64
+cmake ..
+MSBuild.exe PerformanceInvestigationsCSharp.sln
+CSBlockedColumnMultiOutput/bin/x64/Release/net8.0/CSBlockedColumnMultiOutput.exe
+```
+
 
 ## Profiling on Windows
 
 * VerySleepy (https://schellcode.github.io/profiling-and-visualization)
-* KCachegrind
 * [Intel VTune](./VTuneWindows.md)
  - Just use the GUI
  - Command line

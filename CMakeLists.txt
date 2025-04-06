@@ -54,7 +54,7 @@ endif()
 
 # CSharp examples
 if(NOT EMSCRIPTEN AND NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
-#  add_subdirectory(csharp)
+  add_subdirectory(csharp)
 endif()
 
 

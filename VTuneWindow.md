@@ -93,3 +93,12 @@ For cache/memory analysis, VTune may prompt to install a sampling driver. Allow 
 - Admin access
 - Visual Studio (for builds/symbols)
 
+## Usage
+
+1. Configure Analysis 
+ -> Memory Access
+   -> Memory Usage
+   -> Microarchtecture Exploration
+   -> Hotspots by CPU Utilization
+   -> Hardware Events
+ 
