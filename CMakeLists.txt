@@ -48,7 +48,9 @@ add_subdirectory(blocked)
 add_subdirectory(blocked_column) 
 add_subdirectory(multi_output)
 add_subdirectory(multi_output_accumulate)
-add_subdirectory(mkl)
+if (NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
+  add_subdirectory(mkl)
+endif()
 
 # CSharp examples
 if(NOT EMSCRIPTEN AND NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")

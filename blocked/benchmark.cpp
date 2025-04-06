@@ -98,9 +98,9 @@ static void blocked_aligned_mmul_bench(benchmark::State& s)
   std::uniform_real_distribution<float> dist(-10, 10);
 
   // Create input matrices
-  float* A = static_cast<float*>(std::aligned_alloc(64, N * N * sizeof(float)));
-  float* B = static_cast<float*>(std::aligned_alloc(64, N * N * sizeof(float)));
-  float* C = static_cast<float*>(std::aligned_alloc(64, N * N * sizeof(float)));
+  float* A = static_cast<float*>(ALIGNED_ALLOC(64, N * N * sizeof(float)));
+  float* B = static_cast<float*>(ALIGNED_ALLOC(64, N * N * sizeof(float)));
+  float* C = static_cast<float*>(ALIGNED_ALLOC(64, N * N * sizeof(float)));
 
   // Initialize them with random values (and C to 0)
   std::generate(A, A + N * N, [&] { return dist(rng); });
@@ -113,10 +113,10 @@ static void blocked_aligned_mmul_bench(benchmark::State& s)
     blocked_mmul(A, B, C, N);
   }
 
-  // Free memory
-  std::free(A);
-  std::free(B);
-  std::free(C);
+  // Free memory, std::free
+  ALIGNED_FREE(A);
+  ALIGNED_FREE(B);
+  ALIGNED_FREE(C);
 }
 BENCHMARK(blocked_aligned_mmul_bench)
   ->Arg(1 * BENCH_SCALE * numThreads * 16)
