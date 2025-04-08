@@ -46,6 +46,17 @@
         "stopAtEntry": false,
         "justMyCode": false,
         "console": "internalConsole"
+      },        
+      {
+        "name": "Debug CSBlockedColumnMultiOutputAVX (.NET)",
+          "type": "coreclr",
+        "request": "launch",
+        "program": "${workspaceFolder}/build/linux/csharp/CSBlockedColumnMultiOutputAVX/bin/Debug/net8.0/CSBlockedColumnMultiOutputAVX.dll",
+        "args": [],
+        "cwd": "${workspaceFolder}",
+        "stopAtEntry": false,
+        "justMyCode": false,
+        "console": "internalConsole"
       }        
     ]
 }
