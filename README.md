@@ -17,9 +17,12 @@ In the *Individual Components* tab, check
       - MSVC v143 (or latest) C++ toolset
       - Windows SDK (latest)
 
- * Copy `CMakeClangPresets.json` to `CMakePresets.json` for Clang usage.
- * Copy `CMakeMSVCPresets.json` to `CMakePresets.json` for MSVC usage.
+ * Copy `CMakeClangPresets.json` to `CMakePresets.json` (for Clang usage)
+ * or Copy `CMakeMSVCPresets.json` to `CMakePresets.json` for MSVC usage.
+ * or Copy `CMakeVS2022Presets.json` to `CMakePresets.json` for possibility to switch between the two.
  * Open folder (this folder in Visual Studio)
+
+### Optional (but please try)
 
 CSharp examples are added for reference - just code, no solution is
 provided. Two options exists
