@@ -22,17 +22,23 @@ void blocked_column_multi_output_parallel_mmul(const float* A, const float* B, f
   std::size_t N, std::size_t start_col, std::size_t end_col)
 {
   // For each chunk of columns
+#pragma loop(ivdep)
   for (std::size_t col_chunk = start_col; col_chunk < end_col; col_chunk += 16)
-    // For each chunk of rows
+  // For each chunk of rows
+#pragma loop(ivdep)
     for (std::size_t row_chunk = 0; row_chunk < N; row_chunk += 16)
-      // For each block of elements in this row of this column chunk
-      // Solve for 16 elements at a time
+    // For each block of elements in this row of this column chunk
+    // Solve for 16 elements at a time
+#pragma loop(ivdep)
       for (std::size_t tile = 0; tile < N; tile += 16)
-        // For apply that tile to each row of the row chunk
+      // For apply that tile to each row of the row chunk
+#pragma loop(ivdep)
         for (std::size_t row = 0; row < 16; row++)
-          // For each row in the tile
+        // For each row in the tile
+#pragma loop(ivdep)
           for (std::size_t tile_row = 0; tile_row < 16; tile_row++)
-            // Solve for each element in this tile row
+          // Solve for each element in this tile row
+#pragma loop(ivdep)
             for (std::size_t idx = 0; idx < 16; idx++)
               C[(row + row_chunk) * N + col_chunk + idx] +=
                 A[(row + row_chunk) * N + tile + tile_row] *
@@ -64,26 +70,33 @@ void blocked_column_multi_output_mmul_accumulate(
   constexpr std::size_t block = 16;
 
   // Assumes N % block == 0
+#pragma loop(ivdep)
   for (std::size_t col_chunk = 0; col_chunk < N; col_chunk += block)
   {
+#pragma loop(ivdep)
     for (std::size_t row_chunk = 0; row_chunk < N; row_chunk += block)
     {
+#pragma loop(ivdep)
       for (std::size_t tile = 0; tile < N; tile += block)
       {
+#pragma loop(ivdep)
         for (std::size_t row = 0; row < block; ++row)
         {
           float acc[block] = { 0 };
 
+#pragma loop(ivdep)
           for (std::size_t tile_row = 0; tile_row < block; ++tile_row)
           {
             float A_val = A[(row + row_chunk) * N + tile + tile_row];
 
+#pragma loop(ivdep)
             for (std::size_t idx = 0; idx < block; ++idx)
             {
               acc[idx] += A_val * B[(tile + tile_row) * N + col_chunk + idx];
             }
           }
 
+#pragma loop(ivdep)
           for (std::size_t idx = 0; idx < block; ++idx)
           {
             C[(row + row_chunk) * N + col_chunk + idx] += acc[idx];

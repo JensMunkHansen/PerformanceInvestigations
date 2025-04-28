@@ -4,7 +4,7 @@
 #include <malloc.h> // For _aligned_malloc
 #define ALIGNED_ALLOC(alignment, size) _aligned_malloc(size, alignment)
 #define ALIGNED_FREE(ptr) _aligned_free(ptr)
-#define BENCH_SCALE 1
+#define BENCH_SCALE 2
 #else
 #include <cstdlib> // For std::aligned_alloc
 #define ALIGNED_ALLOC(alignment, size) std::aligned_alloc(alignment, size)
