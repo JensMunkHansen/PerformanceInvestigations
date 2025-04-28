@@ -127,3 +127,12 @@ RemainAfterExit=yes
 WantedBy=multi-user.target
 EOF
 ```
+
+## Usage
+
+```bash
+vtune --collect uarch-exploration ./baseline
+vtune --collect hotspots -- ./baseline
+vtune --collect memory-access -- ./baseline
+```
+
