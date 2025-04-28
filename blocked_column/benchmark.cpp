@@ -128,6 +128,79 @@ BENCHMARK(blocked_column_mmul_bench)
   ->Arg(3 * BENCH_SCALE * numThreads * 16)
   ->Unit(benchmark::kMillisecond);
 
+#if 0
+static void parallel_blocked_column_mmul_bench(benchmark::State& s)
+{
+  // Number Dimensions of our matrix
+  std::size_t N = s.range(0);
+
+  // Create random number generators
+  std::mt19937 rng;
+  rng.seed(std::random_device()());
+  std::uniform_real_distribution<float> dist(-10, 10);
+
+  // Create input matrices
+  float* A = static_cast<float*>(ALIGNED_ALLOC(64, N * N * sizeof(float)));
+  float* B = static_cast<float*>(ALIGNED_ALLOC(64, N * N * sizeof(float)));
+  float* C = static_cast<float*>(ALIGNED_ALLOC(64, N * N * sizeof(float)));
+
+  // Initialize them
+  std::generate(A, A + N * N, [&] { return dist(rng); });
+  std::generate(B, B + N * N, [&] { return dist(rng); });
+  std::generate(C, C + N * N, [&] { return 0.0f; });
+
+  std::size_t num_threads = numThreads;
+  std::vector<std::thread> threads;
+  threads.reserve(num_threads);
+
+  // Allocate per-thread private C matrices
+  std::vector<float*> thread_C_buffers(num_threads);
+  for (std::size_t i = 0; i < num_threads; i++)
+    thread_C_buffers[i] = static_cast<float*>(ALIGNED_ALLOC(64, N * N * sizeof(float)));
+
+  std::size_t n_cols = N / num_threads;
+
+  for (auto _ : s)
+  {
+    // Clear per-thread buffers
+    for (std::size_t i = 0; i < num_threads; i++)
+      std::fill(thread_C_buffers[i], thread_C_buffers[i] + N * N, 0.0f);
+
+    // Launch threads
+    std::size_t start_col = 0;
+    for (std::size_t i = 0; i < num_threads; i++)
+    {
+      auto end_col = start_col + n_cols;
+      float* local_C = thread_C_buffers[i];
+      threads.emplace_back(
+        [=] { blocked_column_parallel_mmul(A, B, local_C, N, start_col, end_col); });
+      start_col += n_cols;
+    }
+
+    // Wait for all threads
+    for (auto& t : threads)
+      t.join();
+    threads.clear();
+
+    // Reduction: combine all local_C into C
+    for (std::size_t i = 0; i < num_threads; i++)
+    {
+      float* local_C = thread_C_buffers[i];
+      for (std::size_t idx = 0; idx < N * N; idx++)
+        C[idx] += local_C[idx];
+    }
+  }
+
+  // Free memory
+  for (auto buf : thread_C_buffers)
+    ALIGNED_FREE(buf);
+
+  ALIGNED_FREE(A);
+  ALIGNED_FREE(B);
+  ALIGNED_FREE(C);
+}
+
+#else
 // Parallel MMul benchmark
 static void parallel_blocked_column_mmul_bench(benchmark::State& s)
 {
@@ -183,6 +256,8 @@ static void parallel_blocked_column_mmul_bench(benchmark::State& s)
   ALIGNED_FREE(B);
   ALIGNED_FREE(C);
 }
+#endif
+
 BENCHMARK(parallel_blocked_column_mmul_bench)
   ->Arg(1 * BENCH_SCALE * 16 * numThreads) // Not good always 16
   ->Arg(2 * BENCH_SCALE * 16 * numThreads)
