@@ -1,6 +1,6 @@
 [submodule "CMake"]
 	path = CMake
-	url = git@github.com:JensMunkHansen/CMake.git
+	url = https://github.com/JensMunkHansen/CMake.git
 [user]
         name = Jens Munk Hansen
         email = jens.munk.hansen@gmail.com
