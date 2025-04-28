@@ -424,3 +424,27 @@ int main(int argc, char** argv)
   benchmark::RunSpecifiedBenchmarks();
   return 0;
 }
+
+/*
+//  clang-format off
+
+## Threads and Data Access in Tiled Parallel Matrix Multiply
+
+| Aspect                        | Old naive version                     | New tiled-blocked version              |
+|:-------------------------------|:--------------------------------------|:---------------------------------------|
+| Thread work assignment         | Rows or columns                      | Disjoint tiles (blocks)                |
+| Reads from A                   | Threads read nearly all of A         | Threads read only necessary rows of A  |
+| Reads from B                   | Threads read nearly all of B         | Threads read only necessary columns of B |
+| Writes to C                    | Threads might write to same regions  | Threads write to disjoint regions (no overlap) |
+| Cache conflicts                | Heavy (false sharing, thrashing)     | Minimal (localized per-thread access) |
+| Memory bandwidth usage         | Very inefficient                     | Efficient (better cache reuse)         |
+| Thread independence            | Poor (data sharing, cache line ping-pong) | Strong (only local data needed)   |
+| Scaling with thread count      | Bad after a few cores                | Scales well until memory bandwidth saturation |
+| Overlap of A/B data between threads | Large (global)                    | Small (some rows of A shared, acceptable) |
+| Prefetching benefit            | Harder, unpredictable                | Easier, structured access patterns     |
+| Overall performance            | Poor at high core counts             | Much better and predictable            |
+clang on
+
+
+//  clang-format on
+*/
