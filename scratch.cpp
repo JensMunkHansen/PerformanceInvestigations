@@ -11,6 +11,12 @@
 #include <thread>
 #include <vector>
 
+#ifndef likely
+//#define likely(x) __builtin_expect(!!(x), 1)
+#define likely(x) 1
+#define unlikely(x) __builtin_expect(!!(x), 0)
+#endif
+
 unsigned int numThreads = std::thread::hardware_concurrency();
 
 // Serial implementation
@@ -144,7 +150,6 @@ static void tiled_blocked_parallel_mmul_bench(benchmark::State& s)
 {
   const std::size_t N = s.range(0);
 
-  // Create random input matrices
   std::mt19937 rng;
   rng.seed(std::random_device()());
   std::uniform_real_distribution<float> dist(-10, 10);
@@ -158,17 +163,15 @@ static void tiled_blocked_parallel_mmul_bench(benchmark::State& s)
   std::generate(C, C + N * N, [&] { return 0.0f; });
 
   const std::size_t num_threads = numThreads;
-  const std::size_t tile_size = 128; // <- Tile size (for cache friendliness)
-  const std::size_t block_size = 4;  // <- Small block inside tiles
+  const std::size_t tile_size = 128;
+  const std::size_t block_size = 16;
 
-  // Precompute tile ownership
   std::size_t num_tiles = (N + tile_size - 1) / tile_size;
   std::vector<std::pair<std::size_t, std::size_t>> tiles;
   for (std::size_t row = 0; row < num_tiles; ++row)
     for (std::size_t col = 0; col < num_tiles; ++col)
       tiles.emplace_back(row, col);
 
-  // Distribute tiles across threads
   std::vector<std::vector<std::pair<std::size_t, std::size_t>>> thread_tiles(num_threads);
   for (std::size_t i = 0; i < tiles.size(); ++i)
     thread_tiles[i % num_threads].push_back(tiles[i]);
@@ -180,7 +183,6 @@ static void tiled_blocked_parallel_mmul_bench(benchmark::State& s)
   {
     std::fill(C, C + N * N, 0.0f);
 
-    // Launch threads
     for (std::size_t t = 0; t < num_threads; ++t)
     {
       threads.emplace_back(
@@ -201,39 +203,50 @@ static void tiled_blocked_parallel_mmul_bench(benchmark::State& s)
               {
                 for (std::size_t j = col_start; j < col_end; j += block_size)
                 {
-                  // Multi-output 4x4 registers
                   float c[block_size][block_size] = { 0 };
 
                   for (std::size_t kk = k; kk < k_end; ++kk)
                   {
                     float a[block_size];
+                  // Prefetch upcoming A and B
+#pragma ivdep
+#pragma clang loop vectorize(enable)
                     for (std::size_t bi = 0; bi < block_size; ++bi)
                     {
-                      if (i + bi < N)
+                      if (likely(i + bi < N))
                         a[bi] = A[(i + bi) * N + kk];
                       else
                         a[bi] = 0.0f;
                     }
 
+#pragma ivdep
+#pragma clang loop vectorize(enable)
                     for (std::size_t bj = 0; bj < block_size; ++bj)
                     {
-                      if (j + bj >= N)
-                        continue;
-                      float b = B[kk * N + (j + bj)];
-                      for (std::size_t bi = 0; bi < block_size; ++bi)
+                      if (likely(j + bj < N))
                       {
-                        if (i + bi < N)
-                          c[bi][bj] += a[bi] * b;
+                        float b = B[kk * N + (j + bj)];
+
+#pragma ivdep
+#pragma clang loop vectorize(enable)
+                        for (std::size_t bi = 0; bi < block_size; ++bi)
+                        {
+                          if (likely(i + bi < N))
+                            c[bi][bj] += a[bi] * b;
+                        }
                       }
                     }
                   }
 
-                  // Store back C block
+#pragma ivdep
+#pragma clang loop vectorize(enable)
                   for (std::size_t bi = 0; bi < block_size; ++bi)
                   {
+#pragma ivdep
+#pragma clang loop vectorize(enable)
                     for (std::size_t bj = 0; bj < block_size; ++bj)
                     {
-                      if (i + bi < N && j + bj < N)
+                      if (likely((i + bi) < N && (j + bj) < N))
                         C[(i + bi) * N + (j + bj)] += c[bi][bj];
                     }
                   }
@@ -249,7 +262,6 @@ static void tiled_blocked_parallel_mmul_bench(benchmark::State& s)
     threads.clear();
   }
 
-  // Free memory
   ALIGNED_FREE(A);
   ALIGNED_FREE(B);
   ALIGNED_FREE(C);
@@ -260,6 +272,129 @@ BENCHMARK(tiled_blocked_parallel_mmul_bench)
   ->Arg(2 * BENCH_SCALE * 16 * numThreads)
   ->Arg(3 * BENCH_SCALE * 16 * numThreads)
   ->Unit(benchmark::kMillisecond);
+
+static void tiled_blocked_parallel_mmul_perfect_bench(benchmark::State& s)
+{
+  const std::size_t N = s.range(0);
+
+  // Create random input matrices
+  std::mt19937 rng;
+  rng.seed(std::random_device()());
+  std::uniform_real_distribution<float> dist(-10, 10);
+
+  float* A = static_cast<float*>(ALIGNED_ALLOC(64, N * N * sizeof(float)));
+  float* B = static_cast<float*>(ALIGNED_ALLOC(64, N * N * sizeof(float)));
+  float* C = static_cast<float*>(ALIGNED_ALLOC(64, N * N * sizeof(float)));
+
+  std::generate(A, A + N * N, [&] { return dist(rng); });
+  std::generate(B, B + N * N, [&] { return dist(rng); });
+  std::generate(C, C + N * N, [&] { return 0.0f; });
+
+  const std::size_t num_threads = numThreads;
+  const std::size_t tile_size = 128; // Must divide N exactly
+  const std::size_t block_size = 16; // Must divide tile_size exactly
+
+  // Precompute tile ownership
+  std::size_t num_tiles = N / tile_size;
+  std::vector<std::pair<std::size_t, std::size_t>> tiles;
+  for (std::size_t row = 0; row < num_tiles; ++row)
+    for (std::size_t col = 0; col < num_tiles; ++col)
+      tiles.emplace_back(row, col);
+
+  // Distribute tiles across threads
+  std::vector<std::vector<std::pair<std::size_t, std::size_t>>> thread_tiles(num_threads);
+  for (std::size_t i = 0; i < tiles.size(); ++i)
+    thread_tiles[i % num_threads].push_back(tiles[i]);
+
+  std::vector<std::thread> threads;
+  threads.reserve(num_threads);
+
+  for (auto _ : s)
+  {
+    std::fill(C, C + N * N, 0.0f);
+
+    for (std::size_t t = 0; t < num_threads; ++t)
+    {
+      threads.emplace_back(
+        [=]
+        {
+          for (const auto& [tile_row, tile_col] : thread_tiles[t])
+          {
+            const std::size_t row_start = tile_row * tile_size;
+            const std::size_t col_start = tile_col * tile_size;
+            const std::size_t row_end = row_start + tile_size;
+            const std::size_t col_end = col_start + tile_size;
+
+            for (std::size_t k = 0; k < N; k += tile_size)
+            {
+              const std::size_t k_end = std::min(k + tile_size, N);
+
+              for (std::size_t i = row_start; i < row_end; i += block_size)
+              {
+                for (std::size_t j = col_start; j < col_end; j += block_size)
+                {
+                  float c[block_size][block_size] = { 0 };
+
+                  for (std::size_t kk = k; kk < k_end; ++kk)
+                  {
+                    float a[block_size];
+#if 0
+                    // Prefetch upcoming A and B
+                    if (kk + 8 < k_end) // Don't read out of bounds
+                    {
+                      __builtin_prefetch(&A[(i + 0) * N + (kk + 8)], 0, 3);
+                      __builtin_prefetch(&B[(kk + 8) * N + (j + 0)], 0, 3);
+                    }
+#endif
+#pragma ivdep
+#pragma clang loop vectorize(enable)
+                    for (std::size_t bi = 0; bi < block_size; ++bi)
+                    {
+                      a[bi] = A[(i + bi) * N + kk];
+                    }
+
+#pragma ivdep
+#pragma clang loop vectorize(enable)
+                    for (std::size_t bj = 0; bj < block_size; ++bj)
+                    {
+                      float b = B[kk * N + (j + bj)];
+
+#pragma ivdep
+#pragma clang loop vectorize(enable)
+                      for (std::size_t bi = 0; bi < block_size; ++bi)
+                      {
+                        c[bi][bj] += a[bi] * b;
+                      }
+                    }
+                  }
+
+#pragma ivdep
+#pragma clang loop vectorize(enable)
+                  for (std::size_t bi = 0; bi < block_size; ++bi)
+                  {
+#pragma ivdep
+#pragma clang loop vectorize(enable)
+                    for (std::size_t bj = 0; bj < block_size; ++bj)
+                    {
+                      C[(i + bi) * N + (j + bj)] += c[bi][bj];
+                    }
+                  }
+                }
+              }
+            }
+          }
+        });
+    }
+
+    for (auto& thread : threads)
+      thread.join();
+    threads.clear();
+  }
+
+  ALIGNED_FREE(A);
+  ALIGNED_FREE(B);
+  ALIGNED_FREE(C);
+}
 
 int main(int argc, char** argv)
 {

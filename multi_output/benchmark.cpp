@@ -21,22 +21,40 @@ void blocked_column_multi_output_mmul(const float* A, const float* B, float* C, 
 {
   // For each chunk of columns
 #pragma loop(ivdep)
+#ifdef _MSC_VER
+#pragma vector aligned
+#endif
   for (std::size_t col_chunk = 0; col_chunk < N; col_chunk += 16)
   // For each chunk of rows
 #pragma loop(ivdep)
+#ifdef _MSC_VER
+#pragma vector aligned
+#endif
     for (std::size_t row_chunk = 0; row_chunk < N; row_chunk += 16)
     // For each block of elements in this row of this column chunk
     // Solve for 16 elements at a time
 #pragma loop(ivdep)
+#ifdef _MSC_VER
+#pragma vector aligned
+#endif
       for (std::size_t tile = 0; tile < N; tile += 16)
       // Apply that tile to each row of the row chunk
 #pragma loop(ivdep)
+#ifdef _MSC_VER
+#pragma vector aligned
+#endif
         for (std::size_t row = 0; row < 16; row++)
         // For each row in the tile
 #pragma loop(ivdep)
+#ifdef _MSC_VER
+#pragma vector aligned
+#endif
           for (std::size_t tile_row = 0; tile_row < 16; tile_row++)
           // Solve for each element in this tile row
 #pragma loop(ivdep)
+#ifdef _MSC_VER
+#pragma vector aligned
+#endif
             for (std::size_t idx = 0; idx < 16; idx++)
               C[(row + row_chunk) * N + col_chunk + idx] +=
                 A[(row + row_chunk) * N + tile + tile_row] *
@@ -86,22 +104,40 @@ void blocked_column_multi_output_parallel_mmul(const float* A, const float* B, f
 {
   // For each chunk of columns
 #pragma loop(ivdep)
+#ifdef _MSC_VER
+#pragma vector aligned
+#endif
   for (std::size_t col_chunk = start_col; col_chunk < end_col; col_chunk += 16)
   // For each chunk of rows
 #pragma loop(ivdep)
+#ifdef _MSC_VER
+#pragma vector aligned
+#endif
     for (std::size_t row_chunk = 0; row_chunk < N; row_chunk += 16)
     // For each block of elements in this row of this column chunk
     // Solve for 16 elements at a time
 #pragma loop(ivdep)
+#ifdef _MSC_VER
+#pragma vector aligned
+#endif
       for (std::size_t tile = 0; tile < N; tile += 16)
       // For apply that tile to each row of the row chunk
 #pragma loop(ivdep)
+#ifdef _MSC_VER
+#pragma vector aligned
+#endif
         for (std::size_t row = 0; row < 16; row++)
         // For each row in the tile
 #pragma loop(ivdep)
+#ifdef _MSC_VER
+#pragma vector aligned
+#endif
           for (std::size_t tile_row = 0; tile_row < 16; tile_row++)
           // Solve for each element in this tile row
 #pragma loop(ivdep)
+#ifdef _MSC_VER
+#pragma vector aligned
+#endif
             for (std::size_t idx = 0; idx < 16; idx++)
               C[(row + row_chunk) * N + col_chunk + idx] +=
                 A[(row + row_chunk) * N + tile + tile_row] *
