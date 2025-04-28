@@ -46,3 +46,93 @@ CPU Caches:
   L3 Unified 24576 KiB (x1)
 Load Average: 9.06, 4.62, 2.53
 ***WARNING*** CPU scaling is enabled, the benchmark real time measurements may be noisy and will incur extra overhead.
+-------------------------------------------------------------------------------------
+Benchmark                                           Time             CPU   Iterations
+-------------------------------------------------------------------------------------
+blocked_mmul_bench/512                           64.1 ms         64.1 ms           60
+blocked_mmul_bench/1024                           715 ms          714 ms            6
+blocked_mmul_bench/1536                          2207 ms         2207 ms            2
+blocked_aligned_mmul_bench/512/real_time         58.8 ms         58.8 ms           69
+blocked_aligned_mmul_bench/1024/real_time         610 ms          610 ms            7
+blocked_aligned_mmul_bench/1536/real_time        1950 ms         1950 ms            2
+parallel_blocked_mmul_bench/512/real_time        8.22 ms        0.312 ms          503
+parallel_blocked_mmul_bench/1024/real_time        116 ms        0.540 ms           36
+parallel_blocked_mmul_bench/1536/real_time        370 ms        0.617 ms           12
+2025-04-28T22:23:53+02:00
+Running ./build/linux/bin/Release/blocked_column
+Run on (16 X 4600 MHz CPU s)
+CPU Caches:
+  L1 Data 48 KiB (x8)
+  L1 Instruction 32 KiB (x8)
+  L2 Unified 1280 KiB (x8)
+  L3 Unified 24576 KiB (x1)
+Load Average: 8.38, 4.91, 2.72
+***WARNING*** CPU scaling is enabled, the benchmark real time measurements may be noisy and will incur extra overhead.
+--------------------------------------------------------------------------------------------
+Benchmark                                                  Time             CPU   Iterations
+--------------------------------------------------------------------------------------------
+blocked_column_aligned_mmul_bench/512                   57.4 ms         57.4 ms           66
+blocked_column_aligned_mmul_bench/1024                   599 ms          599 ms            6
+blocked_column_aligned_mmul_bench/1536                  1915 ms         1915 ms            2
+blocked_column_mmul_bench/512                           57.4 ms         57.4 ms           73
+blocked_column_mmul_bench/1024                           596 ms          596 ms            7
+blocked_column_mmul_bench/1536                          1903 ms         1903 ms            2
+parallel_blocked_column_mmul_bench/512/real_time        7.80 ms        0.333 ms          547
+parallel_blocked_column_mmul_bench/1024/real_time        109 ms        0.599 ms           39
+parallel_blocked_column_mmul_bench/1536/real_time        356 ms        0.600 ms           12
+2025-04-28T22:24:38+02:00
+Running ./build/linux/bin/Release/blocked_column_multi_output
+Run on (16 X 4600 MHz CPU s)
+CPU Caches:
+  L1 Data 48 KiB (x8)
+  L1 Instruction 32 KiB (x8)
+  L2 Unified 1280 KiB (x8)
+  L3 Unified 24576 KiB (x1)
+Load Average: 7.52, 5.03, 2.86
+***WARNING*** CPU scaling is enabled, the benchmark real time measurements may be noisy and will incur extra overhead.
+---------------------------------------------------------------------------------------------------------
+Benchmark                                                               Time             CPU   Iterations
+---------------------------------------------------------------------------------------------------------
+blocked_column_multi_output_aligned_mmul_bench/512                   4.91 ms         4.91 ms          797
+blocked_column_multi_output_aligned_mmul_bench/1024                  53.5 ms         53.5 ms           79
+blocked_column_multi_output_aligned_mmul_bench/1536                   142 ms          142 ms           30
+parallel_blocked_column_multi_output_mmul_bench/512/real_time        10.1 ms        0.442 ms          558
+parallel_blocked_column_multi_output_mmul_bench/1024/real_time       95.5 ms        0.524 ms           44
+parallel_blocked_column_multi_output_mmul_bench/1536/real_time        290 ms        0.661 ms           14
+Running PARALLEL (row-based) correctness check with N = 512...
+✅ Row-based parallel version matches reference.
+2025-04-28T22:25:10+02:00
+Running ./build/linux/bin/Release/blocked_column_multi_output_accumulate
+Run on (16 X 4600 MHz CPU s)
+CPU Caches:
+  L1 Data 48 KiB (x8)
+  L1 Instruction 32 KiB (x8)
+  L2 Unified 1280 KiB (x8)
+  L3 Unified 24576 KiB (x1)
+Load Average: 7.65, 5.26, 3.01
+***WARNING*** CPU scaling is enabled, the benchmark real time measurements may be noisy and will incur extra overhead.
+------------------------------------------------------------------------------------------------------
+Benchmark                                                            Time             CPU   Iterations
+------------------------------------------------------------------------------------------------------
+parallel_blocked_row_multi_output_rows_bench/512/real_time        3.71 ms        0.557 ms         1000
+parallel_blocked_row_multi_output_rows_bench/1024/real_time       33.6 ms        0.813 ms          100
+parallel_blocked_row_multi_output_rows_bench/1536/real_time        100 ms         1.26 ms           42
+2025-04-28T22:25:23+02:00
+Running ./build/linux/bin/Release/intelmkl
+Run on (16 X 4600 MHz CPU s)
+CPU Caches:
+  L1 Data 48 KiB (x8)
+  L1 Instruction 32 KiB (x8)
+  L2 Unified 1280 KiB (x8)
+  L3 Unified 24576 KiB (x1)
+Load Average: 8.72, 5.56, 3.13
+***WARNING*** CPU scaling is enabled, the benchmark real time measurements may be noisy and will incur extra overhead.
+--------------------------------------------------------------------------
+Benchmark                                Time             CPU   Iterations
+--------------------------------------------------------------------------
+blocked_aligned_mmul_bench/512       0.518 ms        0.518 ms         8780
+blocked_aligned_mmul_bench/1024       3.96 ms         3.96 ms         1253
+blocked_aligned_mmul_bench/1536       13.0 ms         13.0 ms          346
+blocked_mmul_bench/512               0.517 ms        0.517 ms         8145
+blocked_mmul_bench/1024               4.00 ms         4.00 ms         1236
+blocked_mmul_bench/1536               13.0 ms         13.0 ms          335
