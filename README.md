@@ -44,12 +44,17 @@ CSBlockedColumnMultiOutput/bin/x64/Release/net8.0/CSBlockedColumnMultiOutput.exe
 
 Unfortunately, this does not integrate well with Visual Studio, but
 for performance comparison, I have added this. If you want a really
-fast implementation, you can copy `CMakeClangPure.json` to `CMakePresets.json` and execute
+fast implementation, you can copy `CMakeClangPure.json` to
+`CMakePresets.json` and execute
+`build\clang-ninja\bin\Release\best.exe`, you get something that runs
+almost as fast as MKL and a speed-up of 558x compared to baseline.
 
 ``` bash
 cmake --preset clang-ninja-multi
 cmake --build build\clang-ninja --config Release
 ```
+There is no Visual Studio support, but when you execute
+
 
 ## Profiling on Windows
 
