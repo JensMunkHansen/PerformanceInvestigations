@@ -40,6 +40,16 @@ MSBuild.exe PerformanceInvestigationsCSharp.sln
 CSBlockedColumnMultiOutput/bin/x64/Release/net8.0/CSBlockedColumnMultiOutput.exe
 ```
 
+## Running Ninja+Clang without MSVC
+
+Unfortunately, this does not integrate well with Visual Studio, but
+for performance comparison, I have added this. If you want a really
+fast implementation, you can copy `CMakeClangPure.json` to `CMakePresets.json` and execute
+
+``` bash
+cmake --preset clang-ninja-multi
+cmake --build build\clang-ninja --config Release
+```
 
 ## Profiling on Windows
 

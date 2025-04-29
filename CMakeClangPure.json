@@ -1,0 +1,34 @@
+{
+  "version": 4,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 21,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "clang-ninja-multi",
+      "displayName": "Clang with Ninja (No MSBuild)",
+      "generator": "Ninja Multi-Config",
+      "binaryDir": "${sourceDir}/build/clang-ninja",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "C:/Program Files/Microsoft Visual Studio/2022/Professional/VC/Tools/Llvm/x64/bin/clang.exe",
+        "CMAKE_CXX_COMPILER": "C:/Program Files/Microsoft Visual Studio/2022/Professional/VC/Tools/Llvm/x64/bin/clang++.exe"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "clang-ninja-multi-release",
+      "configurePreset": "clang-ninja-multi",
+      "description": "Build Release with Clang + Ninja Multi-Config",
+      "configuration": "Release"
+    },
+    {
+      "name": "clang-ninja-multi-debug",
+      "configurePreset": "clang-ninja-multi",
+      "description": "Build Debug with Clang + Ninja Multi-Config",
+      "configuration": "Debug"
+    }
+  ]    
+}

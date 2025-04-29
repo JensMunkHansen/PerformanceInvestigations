@@ -41,7 +41,7 @@ if (NOT EMSCRIPTEN)
   # cmake .. -DCMAKE_BUILD_TYPE=Release
   # make -f baseline_nonpower/CMakeFiles/baseline_nonpower_grind.dir/build.make baseline_nonpower/CMakeFiles/baseline_nonpower_grind.dir/grind.cpp.s
   # find . -name \*.s | xargs -i -t less {}
-    if ("${C_COMPILER_ID}" STREQUAL "Clang")
+    if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
       add_custom_command(
         TARGET ${TARGET_NAME} POST_BUILD
         COMMAND llvm-objdump -d $<TARGET_FILE:${TARGET_NAME}> > $<TARGET_FILE_DIR:${TARGET_NAME}>/grind.S
