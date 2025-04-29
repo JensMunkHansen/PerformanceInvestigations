@@ -20,3 +20,24 @@
 #else
 #define PREFETCH(addr) ((void)0) // fallback: no-op
 #endif
+
+#if defined(__clang__)
+    #define PRAGMA_VECTORIZE_ENABLE _Pragma("clang loop vectorize(enable)")
+    #define PRAGMA_IVDEP            _Pragma("ivdep") \
+                                    _Pragma("clang loop vectorize(enable)")             
+                                     
+
+#elif defined(__GNUC__) || defined(__GNUG__)
+    #define PRAGMA_VECTORIZE_ENABLE _Pragma("GCC ivdep") // GCC only supports ivdep
+    #define PRAGMA_IVDEP            _Pragma("GCC ivdep")
+
+#elif defined(_MSC_VER)
+    #define PRAGMA_VECTORIZE_ENABLE __pragma(loop(ivdep)) __pragma(loop(vector))
+    #define PRAGMA_IVDEP            __pragma(loop(ivdep))
+
+#else
+    // Unknown compiler: do nothing
+    #define PRAGMA_VECTORIZE_ENABLE
+    #define PRAGMA_IVDEP
+#endif
+
