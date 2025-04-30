@@ -40,6 +40,14 @@ MSBuild.exe PerformanceInvestigationsCSharp.sln
 CSBlockedColumnMultiOutput/bin/x64/Release/net8.0/CSBlockedColumnMultiOutput.exe
 ```
 
+## Cloning the repo
+
+Please clone the repo with submodules
+
+``` bash
+git clone --recurse-submodules http://github.com/JensMunkHansen/PerformanceInvestigations.git
+```
+
 ## Running Ninja+Clang without MSVC
 
 Unfortunately, this does not integrate well with Visual Studio, but
