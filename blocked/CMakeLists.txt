@@ -2,12 +2,15 @@ set(TARGET_NAME blocked)
 
 if (EMSCRIPTEN)
   sps_emscripten_module(
+    MAIN
     TARGET_NAME ${TARGET_NAME}
     SOURCE_FILES benchmark.cpp
     THREAD_POOL_SIZE ${MAX_CONCURRENCY}
     ES6_MODULE OFF
     EXIT_RUNTIME ON
     OPTIMIZATION BEST
+    COMPILE_OPTIMIZATION BEST
+    DEBUG NONE
     LIBRARIES benchmark::benchmark;Threads::Threads
     FILE_SYSTEM ON
     PRE_JS ${PROJECT_SOURCE_DIR}/emscripten/pre.js

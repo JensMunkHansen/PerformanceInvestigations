@@ -168,7 +168,7 @@ static void tiled_blocked_parallel_mmul_bench(benchmark::State& s)
 
   const std::size_t num_threads = numThreads;
   const std::size_t tile_size = 128;
-  const std::size_t block_size = 16;
+  const std::size_t block_size = 4;
 
   std::size_t num_tiles = (N + tile_size - 1) / tile_size;
   std::vector<std::pair<std::size_t, std::size_t>> tiles;

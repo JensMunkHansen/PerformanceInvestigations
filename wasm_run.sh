@@ -11,6 +11,7 @@ node build/wasm/bin/Release/baseline_nonpower.cjs --benchmark_min_time=5.0s
 node build/wasm/bin/Release/blocked.cjs --benchmark_min_time=3.0s
 node build/wasm/bin/Release/blocked_column.cjs --benchmark_min_time=3.0s
 node build/wasm/bin/Release/blocked_column_multi_output.cjs --benchmark_min_time=3.0s
+node build/wasm/bin/Release/best.cjs --benchmark_min_time=3.0s
 
 # Linear memory is divided into pages of 64 kB each 
 

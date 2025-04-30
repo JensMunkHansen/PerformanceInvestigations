@@ -1,3 +1,3 @@
 #!/bin/bash
-cmake --preset wasm
-cmake --build build/wasm --config Release -v
+cmake --preset wasm -DPerformanceInvestigations_WASM_SIMD=ON
+cmake --build build/wasm --config Release -v 
