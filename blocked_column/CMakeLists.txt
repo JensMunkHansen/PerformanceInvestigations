@@ -4,6 +4,7 @@ sps_get_processor_count(MAX_CONCURRENCY)
 
 if (EMSCRIPTEN)
   sps_emscripten_module(
+    MAIN
     TARGET_NAME ${TARGET_NAME}
     SOURCE_FILES benchmark.cpp
     THREAD_POOL_SIZE ${MAX_CONCURRENCY}

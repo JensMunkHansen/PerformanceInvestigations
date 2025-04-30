@@ -9,7 +9,6 @@ if (EMSCRIPTEN)
     ES6_MODULE OFF
     EXIT_RUNTIME ON
     OPTIMIZATION BEST
-    COMPILE_OPTIMIZATION BEST
     DEBUG NONE
     LIBRARIES build;benchmark::benchmark;Threads::Threads
     FILE_SYSTEM ON
