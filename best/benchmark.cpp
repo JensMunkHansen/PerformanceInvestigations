@@ -7,13 +7,14 @@
 #include <random>
 #include <thread>
 #include <vector>
+#include <iostream>
 
 
 // Use c++20 [[likely]]
 #ifndef likely
 #if defined(__GNUC__) || defined(__clang__)
-#define likely(x) __builtin_expect(!!(x), 1)
-//#define likely(x) 1
+//#define likely(x) __builtin_expect(!!(x), 1)
+#define likely(x) 1
 #define unlikely(x) __builtin_expect(!!(x), 0)
 #else
 #define likely(x) (x)
@@ -22,6 +23,22 @@
 #endif
 
 unsigned int numThreads = std::thread::hardware_concurrency();
+
+bool matrices_are_close(const float* ref, const float* test, std::size_t N, float eps = 1e-3f)
+{
+  for (std::size_t i = 0; i < N * N; ++i)
+  {
+    float a = ref[i], b = test[i];
+    float diff = std::fabs(a - b);
+    float denom = std::max(1.0f, std::fabs(a));
+    if (diff / denom > eps)
+    {
+      std::cerr << "Mismatch at index " << i << ": " << a << " vs " << b << "\n";
+      return false;
+    }
+  }
+  return true;
+}
 
 // Serial implementation
 void serial_mmul(const float* A, const float* B, float* C, std::size_t N)
@@ -170,6 +187,7 @@ static void tiled_blocked_parallel_mmul_bench(benchmark::State& s)
   const std::size_t tile_size = 128;
   const std::size_t block_size = 4;
 
+  #if 0
   std::size_t num_tiles = (N + tile_size - 1) / tile_size;
   std::vector<std::pair<std::size_t, std::size_t>> tiles;
   for (std::size_t row = 0; row < num_tiles; ++row)
@@ -177,9 +195,23 @@ static void tiled_blocked_parallel_mmul_bench(benchmark::State& s)
       tiles.emplace_back(row, col);
 
   std::vector<std::vector<std::pair<std::size_t, std::size_t>>> thread_tiles(num_threads);
-  for (std::size_t i = 0; i < tiles.size(); ++i)
+  for (std::size_t i = 0; i < tiles.size(); ++i) {
     thread_tiles[i % num_threads].push_back(tiles[i]);
+  }
+  #else
+std::size_t num_tiles = (N + tile_size - 1) / tile_size;
+std::vector<std::vector<std::pair<std::size_t, std::size_t>>> thread_tiles(num_threads);
 
+// Assign tiles so that each thread starts on a different row
+for (std::size_t thread_id = 0; thread_id < num_threads; ++thread_id) {
+  for (std::size_t row = thread_id; row < num_tiles; row += num_threads) {
+    for (std::size_t col = 0; col < num_tiles; ++col) {
+      thread_tiles[thread_id].emplace_back(row, col);
+    }
+  }
+}
+
+  #endif
   std::vector<std::thread> threads;
   threads.reserve(num_threads);
 
@@ -395,6 +427,124 @@ static void tiled_blocked_parallel_mmul_perfect_bench(benchmark::State& s)
   ALIGNED_FREE(C);
 }
 
+bool run_correctness_check(std::size_t N)
+{
+  std::cout << "Running correctness check with N = " << N << "...\n";
+
+  float* A = static_cast<float*>(ALIGNED_ALLOC(64, N * N * sizeof(float)));
+  float* B = static_cast<float*>(ALIGNED_ALLOC(64, N * N * sizeof(float)));
+  float* C_ref = static_cast<float*>(ALIGNED_ALLOC(64, N * N * sizeof(float)));
+  float* C_test = static_cast<float*>(ALIGNED_ALLOC(64, N * N * sizeof(float)));
+
+  std::mt19937 rng(42); // fixed seed for deterministic results
+  std::uniform_real_distribution<float> dist(-10, 10);
+
+  std::generate(A, A + N * N, [&] { return dist(rng); });
+  std::generate(B, B + N * N, [&] { return dist(rng); });
+  std::fill(C_ref, C_ref + N * N, 0.0f);
+  std::fill(C_test, C_test + N * N, 0.0f);
+
+  // Run reference
+  serial_mmul(A, B, C_ref, N);
+
+  const std::size_t num_threads = numThreads;
+  const std::size_t tile_size = 128; // Must divide N exactly
+  const std::size_t block_size = 16; // Must divide tile_size exactly
+
+  std::size_t num_tiles = (N + tile_size - 1) / tile_size;
+  std::vector<std::vector<std::pair<std::size_t, std::size_t>>> thread_tiles(num_threads);
+  
+  // Assign tiles so that each thread starts on a different row
+  for (std::size_t thread_id = 0; thread_id < num_threads; ++thread_id) {
+    for (std::size_t row = thread_id; row < num_tiles; row += num_threads) {
+      for (std::size_t col = 0; col < num_tiles; ++col) {
+        thread_tiles[thread_id].emplace_back(row, col);
+      }
+    }
+  }
+  
+  std::vector<std::thread> threads;
+  threads.reserve(num_threads);
+
+  for (std::size_t t = 0; t < num_threads; ++t)
+    {
+      threads.emplace_back(
+        [=]
+        {
+          for (const auto& [tile_row, tile_col] : thread_tiles[t])
+          {
+            const std::size_t row_start = tile_row * tile_size;
+            const std::size_t col_start = tile_col * tile_size;
+            const std::size_t row_end = row_start + tile_size;
+            const std::size_t col_end = col_start + tile_size;
+
+            for (std::size_t k = 0; k < N; k += tile_size)
+            {
+              const std::size_t k_end = std::min(k + tile_size, N);
+
+              for (std::size_t i = row_start; i < row_end; i += block_size)
+              {
+                for (std::size_t j = col_start; j < col_end; j += block_size)
+                {
+                  float c[block_size][block_size] = { 0 };
+
+                  for (std::size_t kk = k; kk < k_end; ++kk)
+                  {
+                    float a[block_size];
+#pragma ivdep
+#pragma clang loop vectorize(enable)
+                    for (std::size_t bi = 0; bi < block_size; ++bi)
+                    {
+                      a[bi] = A[(i + bi) * N + kk];
+                    }
+
+#pragma ivdep
+#pragma clang loop vectorize(enable)
+                    for (std::size_t bj = 0; bj < block_size; ++bj)
+                    {
+                      float b = B[kk * N + (j + bj)];
+
+#pragma ivdep
+#pragma clang loop vectorize(enable)
+                      for (std::size_t bi = 0; bi < block_size; ++bi)
+                      {
+                        c[bi][bj] += a[bi] * b;
+                      }
+                    }
+                  }
+
+#pragma ivdep
+#pragma clang loop vectorize(enable)
+                  for (std::size_t bi = 0; bi < block_size; ++bi)
+                  {
+#pragma ivdep
+#pragma clang loop vectorize(enable)
+                    for (std::size_t bj = 0; bj < block_size; ++bj)
+                    {
+                      C_test[(i + bi) * N + (j + bj)] += c[bi][bj];
+                    }
+                  }
+                }
+              }
+            }
+          }
+        });
+    }
+
+    for (auto& thread : threads)
+      thread.join();
+    threads.clear();
+
+  bool ok = matrices_are_close(C_ref, C_test, N);
+  std::cout << (ok ? "✅ Matrices match within error tolerance.\n" : "❌ Matrices do NOT match.\n");
+    
+  ALIGNED_FREE(A);
+  ALIGNED_FREE(B);
+  ALIGNED_FREE(C_test);
+  ALIGNED_FREE(C_ref);
+  return ok;
+}
+
 int main(int argc, char** argv)
 {
   // Separate user arguments and benchmark arguments
@@ -413,6 +563,14 @@ int main(int argc, char** argv)
         static_cast<unsigned int>(std::stoi(argv[i])), std::thread::hardware_concurrency());
     }
   }
+
+  if (!run_correctness_check(512))
+  {
+    std::cerr << "Correctness test failed! Aborting benchmarks.\n";
+    return 1;
+  }
+
+  
   // Pass filtered arguments to Google Benchmark
   int benchmark_argc = static_cast<int>(benchmark_args.size());
   char** benchmark_argv = benchmark_args.data();
