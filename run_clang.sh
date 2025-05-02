@@ -13,3 +13,8 @@ exec > "$output_file" 2>&1
 ./build/linux/bin/Release/blocked_column_multi_output --benchmark_min_time=3.0s
 ./build/linux/bin/Release/blocked_column_multi_output_accumulate --benchmark_min_time=3.0s
 ./build/linux/bin/Release/intelmkl --benchmark_min_time=3.0s
+
+
+#for CPUFREQ in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do
+#  echo performance | sudo tee $CPUFREQ
+#done

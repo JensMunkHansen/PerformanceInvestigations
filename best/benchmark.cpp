@@ -1,6 +1,7 @@
 #include "benchmark/benchmark.h"
 
 #include "../platform.h"
+#include "threadpool.hpp"
 
 #include <algorithm>
 #include <cstdlib>
@@ -11,17 +12,8 @@
 
 #include <immintrin.h>
 
-// Use c++20 [[likely]]
-#ifndef likely
-#if defined(__GNUC__) || defined(__clang__)
-//#define likely(x) __builtin_expect(!!(x), 1)
-#define likely(x) 1
-#define unlikely(x) __builtin_expect(!!(x), 0)
-#else
-#define likely(x) (x)
-#define unlikely(x) (x)
-#endif
-#endif
+
+ThreadPool pool(std::thread::hardware_concurrency());  
 
 unsigned int numThreads = std::thread::hardware_concurrency();
 
@@ -168,6 +160,7 @@ BENCHMARK(parallel_mmul_bench)
   ->Unit(benchmark::kMillisecond)
   ->UseRealTime();
 
+
 static void tiled_blocked_parallel_mmul_bench(benchmark::State& s)
 {
   const std::size_t N = s.range(0);
@@ -201,18 +194,15 @@ static void tiled_blocked_parallel_mmul_bench(benchmark::State& s)
     }
   }
 
-  std::vector<std::thread> threads;
-  threads.reserve(num_threads);
-
   for (auto _ : s)
   {
     std::fill(C, C + N * N, 0.0f);
 
+    std::vector<std::future<void>> futures;
+    
     for (std::size_t t = 0; t < num_threads; ++t)
     {
-      threads.emplace_back(
-        [=]
-        {
+      futures.emplace_back(pool.submit([=] {
           for (const auto& [tile_row, tile_col] : thread_tiles[t])
           {
             const std::size_t row_start = tile_row * tile_size;
@@ -335,12 +325,10 @@ PRAGMA_IVDEP
               }
             }
           }
-        });
+      }));
     }
-
-    for (auto& thread : threads)
-      thread.join();
-    threads.clear();
+    for (auto& fut : futures)
+      fut.get();        
   }
 
   ALIGNED_FREE(A);
