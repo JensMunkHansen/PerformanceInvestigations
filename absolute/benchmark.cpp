@@ -176,6 +176,7 @@ inline void execute_tile_fast(const float* __restrict A, const float* __restrict
 
             for (std::size_t kk = k; kk < k_end; ++kk)
             {
+#if 0
                 // Prefetch future A and B values to L1 cache
                 if (kk + 8 < k_end)
                 {
@@ -193,7 +194,7 @@ inline void execute_tile_fast(const float* __restrict A, const float* __restrict
                           reinterpret_cast<const char*>(&B[(kk + 8) * N + (j + bj)]), _MM_HINT_T0);
                     }
                 }
-
+#endif
                 alignas(64) float a[block_size];
 #pragma ivdep
                 for (std::size_t bi = 0; bi < block_size; ++bi)
