@@ -278,6 +278,7 @@ static void tiled_blocked_parallel_mmul_bench(benchmark::State& s)
     const std::size_t block_size = 16;
 
     std::size_t num_tiles = (N + tile_size - 1) / tile_size;
+#if 0
     std::vector<std::vector<std::pair<std::size_t, std::size_t>>> thread_tiles(num_threads);
 
     for (std::size_t thread_id = 0; thread_id < num_threads; ++thread_id)
@@ -292,7 +293,31 @@ static void tiled_blocked_parallel_mmul_bench(benchmark::State& s)
             thread_tiles[thread_id].emplace_back(row, col);
         }
     }
+#else
+    std::vector<std::pair<std::size_t, std::size_t>> full_tiles;
+    std::vector<std::pair<std::size_t, std::size_t>> edge_tiles;
 
+    for (std::size_t row = 0; row < num_tiles; ++row)
+    {
+        for (std::size_t col = 0; col < num_tiles; ++col)
+        {
+            bool is_edge = (row + 1) * tile_size > N || (col + 1) * tile_size > N;
+            if (is_edge)
+                edge_tiles.emplace_back(row, col);
+            else
+                full_tiles.emplace_back(row, col);
+        }
+    }
+    // Balanced round-robin assignment of full tiles
+    std::vector<std::vector<std::pair<std::size_t, std::size_t>>> thread_tiles(num_threads);
+    for (std::size_t i = 0; i < full_tiles.size(); ++i)
+    {
+        thread_tiles[i % num_threads].push_back(full_tiles[i]);
+    }
+    const size_t num_edge_tiles = edge_tiles.size();
+    const std::size_t tiles_per_thread = (num_edge_tiles + num_threads - 1) / num_threads;
+
+#endif
     for (auto _ : s)
     {
         std::fill(C, C + N * N, 0.0f);
@@ -311,6 +336,7 @@ static void tiled_blocked_parallel_mmul_bench(benchmark::State& s)
 
                       for (std::size_t k = 0; k < N; k += tile_size)
                       {
+#if 0
                           bool is_edge_tile = tile_row == (N / tile_size) - 1 ||
                             tile_col == (N / tile_size) - 1 || k + tile_size > N;
 
@@ -322,6 +348,32 @@ static void tiled_blocked_parallel_mmul_bench(benchmark::State& s)
                           {
                               execute_tile_fast(A, B, C, N, row_start, col_start, k, tile_size);
                           }
+#else
+                          execute_tile_fast(A, B, C, N, row_start, col_start, k, tile_size);
+#endif
+                      }
+                  }
+              }));
+        }
+
+        for (std::size_t t = 0; t < num_threads; ++t)
+        {
+            std::size_t begin = t * tiles_per_thread;
+            std::size_t end = std::min(begin + tiles_per_thread, num_edge_tiles);
+
+            futures.emplace_back(pool.submit(
+              [=]
+              {
+                  for (std::size_t i = begin; i < end; ++i)
+                  {
+                      auto [tile_row, tile_col] = edge_tiles[i];
+
+                      std::size_t row_start = tile_row * tile_size;
+                      std::size_t col_start = tile_col * tile_size;
+
+                      for (std::size_t k = 0; k < N; k += tile_size)
+                      {
+                          execute_tile_edge(A, B, C, N, row_start, col_start, k, tile_size);
                       }
                   }
               }));
@@ -329,7 +381,6 @@ static void tiled_blocked_parallel_mmul_bench(benchmark::State& s)
         for (auto& fut : futures)
             fut.get();
     }
-
     ALIGNED_FREE(A);
     ALIGNED_FREE(B);
     ALIGNED_FREE(C);
@@ -471,7 +522,8 @@ int main(int argc, char** argv)
     {
         if (std::string(argv[i]).find("--") == 0 || i == 0)
         {
-            // Keep benchmark-specific arguments (starting with '--') and the program name
+            // Keep benchmark-specific arguments (starting with '--') and the
+            // program name
             benchmark_args.push_back(argv[i]);
         }
         else
