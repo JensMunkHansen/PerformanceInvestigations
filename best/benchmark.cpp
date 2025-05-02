@@ -9,6 +9,7 @@
 #include <vector>
 #include <iostream>
 
+#include <immintrin.h>
 
 // Use c++20 [[likely]]
 #ifndef likely
@@ -185,33 +186,21 @@ static void tiled_blocked_parallel_mmul_bench(benchmark::State& s)
 
   const std::size_t num_threads = numThreads;
   const std::size_t tile_size = 128;
-  const std::size_t block_size = 4;
+  const std::size_t block_size = 16;
 
-  #if 0
   std::size_t num_tiles = (N + tile_size - 1) / tile_size;
-  std::vector<std::pair<std::size_t, std::size_t>> tiles;
-  for (std::size_t row = 0; row < num_tiles; ++row)
-    for (std::size_t col = 0; col < num_tiles; ++col)
-      tiles.emplace_back(row, col);
-
   std::vector<std::vector<std::pair<std::size_t, std::size_t>>> thread_tiles(num_threads);
-  for (std::size_t i = 0; i < tiles.size(); ++i) {
-    thread_tiles[i % num_threads].push_back(tiles[i]);
-  }
-  #else
-std::size_t num_tiles = (N + tile_size - 1) / tile_size;
-std::vector<std::vector<std::pair<std::size_t, std::size_t>>> thread_tiles(num_threads);
-
-// Assign tiles so that each thread starts on a different row
-for (std::size_t thread_id = 0; thread_id < num_threads; ++thread_id) {
-  for (std::size_t row = thread_id; row < num_tiles; row += num_threads) {
-    for (std::size_t col = 0; col < num_tiles; ++col) {
+  
+  for (std::size_t thread_id = 0; thread_id < num_threads; ++thread_id) {
+    if (thread_id >= num_tiles) continue; // Extra threads won't be assigned anything
+  
+    std::size_t row = thread_id;
+    for (std::size_t i = 0; i < num_tiles; ++i) {
+      std::size_t col = (thread_id + i) % num_tiles; // Wraparound start
       thread_tiles[thread_id].emplace_back(row, col);
     }
   }
-}
 
-  #endif
   std::vector<std::thread> threads;
   threads.reserve(num_threads);
 
@@ -239,16 +228,75 @@ for (std::size_t thread_id = 0; thread_id < num_threads; ++thread_id) {
               {
                 for (std::size_t j = col_start; j < col_end; j += block_size)
                 {
+#if 1
+                  // Same speed as below
+alignas(64) float c[block_size][block_size] = { 0 };
+
+for (std::size_t kk = k; kk < k_end; ++kk)
+{
+    // Load a[bi] with masking
+    __mmask16 row_mask = 0;
+    alignas(64) float a[block_size];
+    for (int bi = 0; bi < block_size; ++bi)
+    {
+        if (i + bi < N)
+        {
+            a[bi] = A[(i + bi) * N + kk];
+            row_mask |= (1 << bi);
+        }
+        else
+        {
+            a[bi] = 0.0f;
+        }
+    }
+
+    for (int bj = 0; bj < block_size; bj += 16)
+    {
+        __mmask16 col_mask = 0;
+        for (int l = 0; l < 16; ++l)
+            if ((j + bj + l) < N) col_mask |= (1 << l);
+
+        // Masked load of 16 elements of B
+        __m512 bVec = _mm512_maskz_loadu_ps(col_mask, &B[kk * N + j + bj]);
+
+        for (int bi = 0; bi < block_size; ++bi)
+        {
+            __m512 aVec = _mm512_set1_ps(a[bi]);
+            __m512 cVec = _mm512_loadu_ps(&c[bi][bj]);
+            cVec = _mm512_mask3_fmadd_ps(aVec, bVec, cVec, col_mask); // c += a * b
+            _mm512_storeu_ps(&c[bi][bj], cVec);
+        }
+    }
+}
+
+// Final store with row + col masking
+for (int bi = 0; bi < block_size; ++bi)
+{
+    if ((i + bi) >= N) continue; // still need outer mask (or convert to mask-based row store)
+
+    for (int bj = 0; bj < block_size; bj += 16)
+    {
+        __mmask16 col_mask = 0;
+        for (int l = 0; l < 16; ++l)
+            if ((j + bj + l) < N) col_mask |= (1 << l);
+
+        __m512 cVec = _mm512_loadu_ps(&c[bi][bj]);
+        __m512 dstVec = _mm512_maskz_loadu_ps(col_mask, &C[(i + bi) * N + j + bj]);
+        dstVec = _mm512_add_ps(dstVec, cVec);
+        _mm512_mask_storeu_ps(&C[(i + bi) * N + j + bj], col_mask, dstVec);
+    }
+}
+#else
+                  // AVX2
                   float c[block_size][block_size] = { 0 };
 
                   for (std::size_t kk = k; kk < k_end; ++kk)
                   {
                     float a[block_size];
-                  // Prefetch upcoming A and B
 PRAGMA_IVDEP
                     for (std::size_t bi = 0; bi < block_size; ++bi)
                     {
-                      if (likely(i + bi < N))
+                      if (i + bi < N) [[likely]]
                         a[bi] = A[(i + bi) * N + kk];
                       else
                         a[bi] = 0.0f;
@@ -257,14 +305,14 @@ PRAGMA_IVDEP
 PRAGMA_IVDEP
                     for (std::size_t bj = 0; bj < block_size; ++bj)
                     {
-                      if (likely(j + bj < N))
-                      {
+                      if (j + bj < N) [[likely]]
+                        {
                         float b = B[kk * N + (j + bj)];
 
 PRAGMA_IVDEP
                         for (std::size_t bi = 0; bi < block_size; ++bi)
                         {
-                          if (likely(i + bi < N))
+                          if (i + bi < N) [[likely]]
                             c[bi][bj] += a[bi] * b;
                         }
                       }
@@ -277,10 +325,12 @@ PRAGMA_IVDEP
 PRAGMA_IVDEP
                     for (std::size_t bj = 0; bj < block_size; ++bj)
                     {
-                      if (likely((i + bi) < N && (j + bj) < N))
+                      if ((i + bi) < N && (j + bj) < N) [[likely]]
                         C[(i + bi) * N + (j + bj)] += c[bi][bj];
                     }
                   }
+               // AVX
+ #endif
                 }
               }
             }
@@ -450,16 +500,17 @@ bool run_correctness_check(std::size_t N)
   const std::size_t num_threads = numThreads;
   const std::size_t tile_size = 128; // Must divide N exactly
   const std::size_t block_size = 16; // Must divide tile_size exactly
-
+  
   std::size_t num_tiles = (N + tile_size - 1) / tile_size;
   std::vector<std::vector<std::pair<std::size_t, std::size_t>>> thread_tiles(num_threads);
   
-  // Assign tiles so that each thread starts on a different row
   for (std::size_t thread_id = 0; thread_id < num_threads; ++thread_id) {
-    for (std::size_t row = thread_id; row < num_tiles; row += num_threads) {
-      for (std::size_t col = 0; col < num_tiles; ++col) {
-        thread_tiles[thread_id].emplace_back(row, col);
-      }
+    if (thread_id >= num_tiles) continue; // Extra threads won't be assigned anything
+  
+    std::size_t row = thread_id;
+    for (std::size_t i = 0; i < num_tiles; ++i) {
+      std::size_t col = (thread_id + i) % num_tiles; // Wraparound start
+      thread_tiles[thread_id].emplace_back(row, col);
     }
   }
   
