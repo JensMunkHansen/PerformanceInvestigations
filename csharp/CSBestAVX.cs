@@ -90,73 +90,78 @@ public static class MatrixMultAVX2Strict
         if (!Avx2.IsSupported)
             throw new PlatformNotSupportedException("AVX2 is required.");
 
-        Array.Clear(C, 0, N * N);
-
-        int numTiles = N / TileSize;
-        var threadTiles = new (int, int)[numThreads][];
-
-        for (int t = 0; t < numThreads; ++t)
+        for (int iter = 0 ; iter < 1000 ; iter++)
         {
-            if (t >= numTiles)
+            Array.Clear(C, 0, N * N);
+            
+            int numTiles = N / TileSize;
+            var threadTiles = new (int, int)[numThreads][];
+            
+            for (int t = 0; t < numThreads; ++t)
             {
-                threadTiles[t] = Array.Empty<(int, int)>();
-                continue;
-            }
-
-            var tiles = new (int, int)[numTiles];
-            for (int i = 0; i < numTiles; ++i)
-            {
-                int row = t;
-                int col = (t + i) % numTiles;
-                tiles[i] = (row, col);
-            }
-            threadTiles[t] = tiles;
-        }
-
-        Task[] tasks = new Task[numThreads];
-
-        for (int t = 0; t < numThreads; ++t)
-        {
-            int threadId = t;
-            tasks[t] = Task.Run(() =>
-            {
-                foreach (var (tileRow, tileCol) in threadTiles[threadId])
+                if (t >= numTiles)
                 {
-                    int rowStart = tileRow * TileSize;
-                    int colStart = tileCol * TileSize;
-
-                    for (int k = 0; k < N; k += TileSize)
+                    threadTiles[t] = Array.Empty<(int, int)>();
+                    continue;
+                }
+            
+                var tiles = new (int, int)[numTiles];
+                for (int i = 0; i < numTiles; ++i)
+                {
+                    int row = t;
+                    int col = (t + i) % numTiles;
+                    tiles[i] = (row, col);
+                }
+                threadTiles[t] = tiles;
+            }
+            
+            Task[] tasks = new Task[numThreads];
+            
+            for (int t = 0; t < numThreads; ++t)
+            {
+                int threadId = t;
+                tasks[t] = Task.Run(() =>
+                {
+                    foreach (var (tileRow, tileCol) in threadTiles[threadId])
                     {
-                        for (int i = rowStart; i < rowStart + TileSize; i += BlockSize)
+                        int rowStart = tileRow * TileSize;
+                        int colStart = tileCol * TileSize;
+            
+                        for (int k = 0; k < N; k += TileSize)
                         {
-                            for (int j = colStart; j < colStart + TileSize; j += VectorWidth)
+                            for (int i = rowStart; i < rowStart + TileSize; i += BlockSize)
                             {
-                                Vector256<float>[] c = new Vector256<float>[BlockSize];
-                                for (int bi = 0; bi < BlockSize; ++bi)
-                                    c[bi] = Load256(C, (i + bi) * N + j);
-
-                                for (int kk = k; kk < k + TileSize; ++kk)
+                                for (int j = colStart; j < colStart + TileSize; j += VectorWidth)
                                 {
+                                    Vector256<float>[] c = new Vector256<float>[BlockSize];
                                     for (int bi = 0; bi < BlockSize; ++bi)
+                                        c[bi] = Load256(C, (i + bi) * N + j);
+            
+                                    for (int kk = k; kk < k + TileSize; ++kk)
                                     {
-                                        float aVal = A[(i + bi) * N + kk];
-                                        var aVec = Vector256.Create(aVal);
-                                        var bVec = Load256(B, kk * N + j);
-                                        var mul = Avx.Multiply(aVec, bVec);
-                                        c[bi] = Avx.Add(c[bi], mul);
+                                        for (int bi = 0; bi < BlockSize; ++bi)
+                                        {
+                                            float aVal = A[(i + bi) * N + kk];
+                                            var aVec = Vector256.Create(aVal);
+                                            var bVec = Load256(B, kk * N + j);
+                                            var mul = Avx.Multiply(aVec, bVec);
+                                            c[bi] = Avx.Add(c[bi], mul);
+                                        }
                                     }
+            
+                                    for (int bi = 0; bi < BlockSize; ++bi)
+                                        Store256(C, (i + bi) * N + j, c[bi]);
                                 }
-
-                                for (int bi = 0; bi < BlockSize; ++bi)
-                                    Store256(C, (i + bi) * N + j, c[bi]);
                             }
                         }
                     }
-                }
-            });
+                });
+            }
+            
+            Task.WaitAll(tasks);
+            var anchor = System.Threading.Volatile.Read(ref C[0]);
+            GC.KeepAlive(anchor); // Ensures read is not optimized away
         }
-
-        Task.WaitAll(tasks);
     }
 }
 
