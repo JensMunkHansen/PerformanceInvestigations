@@ -159,6 +159,19 @@ BENCHMARK(parallel_mmul_bench)
   ->Unit(benchmark::kMillisecond)
   ->UseRealTime();
 
+/**
+ * @brief Update a tile in C of size [tile_size, tile_size]
+ *
+ * @param A pointer to input matrix [N,N]
+ * @param B pointer to input matrix [N,N]
+ * @param C pointer to output matrix [N,N]
+ * @param N size parameter
+ * @param row_start in A
+ * @param col_start in B
+ * @param k runing parameter for patch used for update the tile in C
+ * @param tile_size
+ */
+
 inline void execute_tile_fast(const float* __restrict A, const float* __restrict B,
   float* __restrict C, std::size_t N, std::size_t row_start, std::size_t col_start, std::size_t k,
   std::size_t tile_size)
@@ -176,25 +189,6 @@ inline void execute_tile_fast(const float* __restrict A, const float* __restrict
 
             for (std::size_t kk = k; kk < k_end; ++kk)
             {
-#if 0
-                // Prefetch future A and B values to L1 cache
-                if (kk + 8 < k_end)
-                {
-                    // Prefetch upcoming A row block
-                    for (std::size_t bi = 0; bi < block_size; bi += 4)
-                    {
-                        _mm_prefetch(
-                          reinterpret_cast<const char*>(&A[(i + bi) * N + (kk + 8)]), _MM_HINT_T0);
-                    }
-
-                    // Prefetch upcoming B column block
-                    for (std::size_t bj = 0; bj < block_size; bj += 4)
-                    {
-                        _mm_prefetch(
-                          reinterpret_cast<const char*>(&B[(kk + 8) * N + (j + bj)]), _MM_HINT_T0);
-                    }
-                }
-#endif
                 alignas(64) float a[block_size];
 #pragma ivdep
                 for (std::size_t bi = 0; bi < block_size; ++bi)
@@ -209,7 +203,6 @@ inline void execute_tile_fast(const float* __restrict A, const float* __restrict
                         c[bi][bj] += a[bi] * b;
                 }
             }
-
 #pragma ivdep
             for (std::size_t bi = 0; bi < block_size; ++bi)
             {
@@ -319,6 +312,7 @@ static void tiled_blocked_parallel_mmul_bench(benchmark::State& s)
                       std::size_t row_start = tile_row * tile_size;
                       std::size_t col_start = tile_col * tile_size;
 
+                      // Loop over tiles for computing a final tile in C
                       for (std::size_t k = 0; k < N; k += tile_size)
                       {
                           execute_tile_fast(A, B, C, N, row_start, col_start, k, tile_size);
