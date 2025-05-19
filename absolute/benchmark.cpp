@@ -1,7 +1,7 @@
 #include "benchmark/benchmark.h"
 
 #include "../platform.h"
-#include "threadpool.hpp"
+#include "../threadpool.hpp"
 
 #include <algorithm>
 #include <cstdlib>
