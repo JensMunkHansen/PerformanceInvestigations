@@ -160,7 +160,7 @@ BENCHMARK(parallel_mmul_bench)
   ->UseRealTime();
 
 /**
- * @brief Update a tile in C of size [tile_size, tile_size]
+ * @brief Compute partial results and update a tile in C of size [tile_size, tile_size]
  *
  * @param A pointer to input matrix [N,N]
  * @param B pointer to input matrix [N,N]
@@ -169,7 +169,7 @@ BENCHMARK(parallel_mmul_bench)
  * @param row_start in A
  * @param col_start in B
  * @param k runing parameter for patch used for update the tile in C
- * @param tile_size
+ * @param tile_size [typically 128]
  */
 
 inline void execute_tile_fast(const float* __restrict A, const float* __restrict B,
