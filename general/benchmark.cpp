@@ -12,6 +12,12 @@
 
 #include <immintrin.h>
 
+#include <oneapi/tbb/task_group.h>
+
+#include <oneapi/tbb.h>
+#include <oneapi/tbb/blocked_range.h>
+#include <oneapi/tbb/parallel_for.h>
+
 ThreadPool pool(std::thread::hardware_concurrency());
 
 unsigned int numThreads = std::thread::hardware_concurrency();
@@ -339,6 +345,92 @@ static void tiled_blocked_parallel_mmul_general(const float* A, const float* B, 
         thread_tiles[t].push_back(full_tiles[i]);
     }
 
+#if 1
+
+#if 0
+    tbb::task_group tg;
+    for (std::size_t t = 0; t < num_threads; ++t)
+    {
+        tg.run(
+          [=]
+          {
+              for (const auto& [tile_row, tile_col] : thread_tiles[t])
+              {
+                  std::size_t row_start = tile_row * tile_size;
+                  std::size_t col_start = tile_col * tile_size;
+
+                  for (std::size_t k = 0; k < M; k += tile_size)
+                  {
+                      execute_tile_fast(A, B, C, L, M, N, row_start, col_start, k, tile_size);
+                  }
+              }
+          });
+    }
+
+    // Step 4: Launch cold tiles (fallback kernel)
+    const std::size_t edge_tiles_per_thread = (edge_tiles.size() + num_threads - 1) / num_threads;
+    for (std::size_t t = 0; t < num_threads; ++t)
+    {
+        std::size_t begin = t * edge_tiles_per_thread;
+        std::size_t end = std::min(begin + edge_tiles_per_thread, edge_tiles.size());
+
+        if (begin >= end)
+            continue;
+
+        tg.run(
+          [=]
+          {
+              for (std::size_t i = begin; i < end; ++i)
+              {
+                  auto [tile_row, tile_col] = edge_tiles[i];
+                  std::size_t row_start = tile_row * tile_size;
+                  std::size_t col_start = tile_col * tile_size;
+
+                  for (std::size_t k = 0; k < M; k += tile_size)
+                  {
+                      bool edge_k = (k + tile_size > M);
+                      if (edge_k)
+                      {
+                          execute_tile_edge(A, B, C, L, M, N, row_start, col_start, k, tile_size);
+                      }
+                      else
+                      {
+                          execute_tile_fast(A, B, C, L, M, N, row_start, col_start, k, tile_size);
+                      }
+                  }
+              }
+          });
+    }
+
+    // Step 5: Wait for all tasks to complete
+    tg.wait();
+#else
+
+    tbb::affinity_partitioner ap;
+
+    tbb::parallel_for(
+      tbb::blocked_range<std::size_t>(0, thread_tiles.size()),
+      [&](const tbb::blocked_range<std::size_t>& r)
+      {
+          for (std::size_t t = r.begin(); t < r.end(); ++t)
+          {
+              for (const auto& [tile_row, tile_col] : thread_tiles[t])
+              {
+                  std::size_t row_start = tile_row * tile_size;
+                  std::size_t col_start = tile_col * tile_size;
+
+                  for (std::size_t k = 0; k < M; k += tile_size)
+                  {
+                      execute_tile_fast(A, B, C, L, M, N, row_start, col_start, k, tile_size);
+                  }
+              }
+          }
+      },
+      ap);
+
+#endif
+
+#else
     std::vector<std::future<void>> futures;
 
     // Step 3: Launch hot tiles first (high-performance kernel)
@@ -399,6 +491,7 @@ static void tiled_blocked_parallel_mmul_general(const float* A, const float* B, 
     // Step 5: Wait for all tasks
     for (auto& fut : futures)
         fut.get();
+#endif
 }
 
 static void tiled_blocked_parallel_mmul_bench(benchmark::State& s)
