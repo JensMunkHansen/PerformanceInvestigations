@@ -434,9 +434,7 @@ static void tiled_blocked_parallel_mmul_general(const float* A, const float* B, 
       {
           for (std::size_t i = r.begin(); i < r.end(); ++i)
           {
-              const auto& tile = edge_tiles[i];
-              std::size_t tile_row = tile.first;
-              std::size_t tile_col = tile.second;
+              const auto& [tile_row, tile_col] = edge_tiles[i];
 
               std::size_t row_start = tile_row * tile_size;
               std::size_t col_start = tile_col * tile_size;
