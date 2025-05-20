@@ -428,6 +428,35 @@ static void tiled_blocked_parallel_mmul_general(const float* A, const float* B, 
       },
       ap);
 
+    tbb::parallel_for(
+      tbb::blocked_range<std::size_t>(0, edge_tiles.size()),
+      [&](const tbb::blocked_range<std::size_t>& r)
+      {
+          for (std::size_t i = r.begin(); i < r.end(); ++i)
+          {
+              const auto& tile = edge_tiles[i];
+              std::size_t tile_row = tile.first;
+              std::size_t tile_col = tile.second;
+
+              std::size_t row_start = tile_row * tile_size;
+              std::size_t col_start = tile_col * tile_size;
+
+              for (std::size_t k = 0; k < M; k += tile_size)
+              {
+                  bool edge_k = (k + tile_size > M);
+                  if (edge_k)
+                  {
+                      execute_tile_edge(A, B, C, L, M, N, row_start, col_start, k, tile_size);
+                  }
+                  else
+                  {
+                      execute_tile_fast(A, B, C, L, M, N, row_start, col_start, k, tile_size);
+                  }
+              }
+          }
+      },
+      ap);
+
 #endif
 
 #else
