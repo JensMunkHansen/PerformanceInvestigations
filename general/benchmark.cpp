@@ -214,21 +214,27 @@ inline void execute_tile_fast(const float* __restrict A, const float* __restrict
             {
                 alignas(64) float a[block_size];
 #pragma ivdep
+#pragma clang loop vectorize(enable)
                 for (std::size_t bi = 0; bi < block_size; ++bi)
                     a[bi] = A[(i + bi) * M + kk];
 
 #pragma ivdep
+#pragma clang loop vectorize(enable)
                 for (std::size_t bj = 0; bj < block_size; ++bj)
                 {
                     float b = B[kk * N + (j + bj)];
 #pragma ivdep
+#pragma clang loop vectorize(enable)
                     for (std::size_t bi = 0; bi < block_size; ++bi)
                         c[bi][bj] += a[bi] * b;
                 }
             }
 
 #pragma ivdep
+#pragma clang loop vectorize(enable)
             for (std::size_t bi = 0; bi < block_size; ++bi)
+#pragma ivdep
+#pragma clang loop vectorize(enable)
                 for (std::size_t bj = 0; bj < block_size; ++bj)
                     C[(i + bi) * N + (j + bj)] += c[bi][bj];
         }
