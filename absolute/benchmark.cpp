@@ -242,7 +242,7 @@ inline void execute_tile_edge(const float* A, const float* B, float* C, std::siz
 
             for (std::size_t kk = k; kk < k_end; ++kk)
             {
-                float a[block_size];
+                alignas(64) float a[block_size];
                 for (std::size_t bi = 0; bi < block_size; ++bi)
                     a[bi] = (i + bi < N) ? A[(i + bi) * N + kk] : 0.0f;
 
@@ -312,6 +312,53 @@ static void tiled_blocked_parallel_mmul_bench(benchmark::State& s)
     {
         std::fill(C, C + N * N, 0.0f);
 #ifdef USE_TBB
+#if 1
+        // Faster since balanced
+        tbb::task_group tg;
+        for (std::size_t t = 0; t < num_threads; ++t)
+        {
+            tg.run(
+              [=]
+              {
+                  for (const auto& [tile_row, tile_col] : thread_tiles[t])
+                  {
+                      std::size_t row_start = tile_row * tile_size;
+                      std::size_t col_start = tile_col * tile_size;
+
+                      for (std::size_t k = 0; k < N; k += tile_size)
+                      {
+                          execute_tile_fast(A, B, C, N, row_start, col_start, k, tile_size);
+                      }
+                  }
+              });
+        }
+
+        for (std::size_t t = 0; t < num_threads; ++t)
+        {
+            std::size_t begin = t * tiles_per_thread;
+            std::size_t end = std::min(begin + tiles_per_thread, edge_tiles.size());
+
+            if (begin >= end)
+                continue;
+
+            tg.run(
+              [=]
+              {
+                  for (std::size_t i = begin; i < end; ++i)
+                  {
+                      auto [tile_row, tile_col] = edge_tiles[i];
+                      std::size_t row_start = tile_row * tile_size;
+                      std::size_t col_start = tile_col * tile_size;
+
+                      for (std::size_t k = 0; k < N; k += tile_size)
+                      {
+                          execute_tile_edge(A, B, C, N, row_start, col_start, k, tile_size);
+                      }
+                  }
+              });
+        }
+        tg.wait();
+#else
         tbb::affinity_partitioner ap;
 
         tbb::parallel_for(tbb::blocked_range<std::size_t>(0, thread_tiles.size()),
@@ -349,7 +396,7 @@ static void tiled_blocked_parallel_mmul_bench(benchmark::State& s)
                   }
               }
           });
-
+#endif
 #else
         std::vector<std::future<void>> futures;
 
