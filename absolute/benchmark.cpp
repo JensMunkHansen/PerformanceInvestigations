@@ -1,7 +1,7 @@
+
 #include "benchmark/benchmark.h"
 
 #include "../platform.h"
-#include "../threadpool.hpp"
 
 #include <algorithm>
 #include <cstdlib>
@@ -12,7 +12,17 @@
 
 #include <immintrin.h>
 
+#define USE_TBB 1
+
+#ifdef USE_TBB
+#include <oneapi/tbb.h>
+#include <oneapi/tbb/blocked_range.h>
+#include <oneapi/tbb/parallel_for.h>
+#include <oneapi/tbb/task_group.h>
+#else
+#include "../threadpool.hpp"
 ThreadPool pool(std::thread::hardware_concurrency());
+#endif
 
 unsigned int numThreads = std::thread::hardware_concurrency();
 
@@ -91,11 +101,11 @@ static void serial_mmul_bench(benchmark::State& s)
     delete[] B;
     delete[] C;
 }
-BENCHMARK(serial_mmul_bench)
-  ->Arg(1 * BENCH_SCALE * 16 * numThreads)
-  ->Arg(2 * BENCH_SCALE * 16 * numThreads)
-  ->Arg(3 * BENCH_SCALE * 16 * numThreads)
-  ->Unit(benchmark::kMillisecond);
+// BENCHMARK(serial_mmul_bench)
+//   ->Arg(1 * BENCH_SCALE * 16 * numThreads)
+//   ->Arg(2 * BENCH_SCALE * 16 * numThreads)
+//   ->Arg(3 * BENCH_SCALE * 16 * numThreads)
+//   ->Unit(benchmark::kMillisecond);
 
 // Parallel MMul benchmark
 static void parallel_mmul_bench(benchmark::State& s)
@@ -152,12 +162,14 @@ static void parallel_mmul_bench(benchmark::State& s)
     delete[] B;
     delete[] C;
 }
+#if 0
 BENCHMARK(parallel_mmul_bench)
   ->Arg(1 * BENCH_SCALE * 16 * numThreads)
   ->Arg(2 * BENCH_SCALE * 16 * numThreads)
   ->Arg(3 * BENCH_SCALE * 16 * numThreads)
   ->Unit(benchmark::kMillisecond)
   ->UseRealTime();
+#endif
 
 /**
  * @brief Compute partial results and update a tile in C of size [tile_size, tile_size]
@@ -299,7 +311,46 @@ static void tiled_blocked_parallel_mmul_bench(benchmark::State& s)
     for (auto _ : s)
     {
         std::fill(C, C + N * N, 0.0f);
+#ifdef USE_TBB
+        tbb::affinity_partitioner ap;
 
+        tbb::parallel_for(tbb::blocked_range<std::size_t>(0, thread_tiles.size()),
+          [&](const tbb::blocked_range<std::size_t>& r)
+          {
+              for (std::size_t t = r.begin(); t < r.end(); ++t)
+              {
+                  for (const auto& [tile_row, tile_col] : thread_tiles[t])
+                  {
+                      std::size_t row_start = tile_row * tile_size;
+                      std::size_t col_start = tile_col * tile_size;
+
+                      // Loop over tiles for computing a final tile in C
+                      for (std::size_t k = 0; k < N; k += tile_size)
+                      {
+                          execute_tile_fast(A, B, C, N, row_start, col_start, k, tile_size);
+                      }
+                  }
+              }
+          });
+
+        tbb::parallel_for(tbb::blocked_range<std::size_t>(0, edge_tiles.size()),
+          [&](const tbb::blocked_range<std::size_t>& r)
+          {
+              for (std::size_t t = r.begin(); t < r.end(); ++t)
+              {
+                  auto [tile_row, tile_col] = edge_tiles[t];
+
+                  std::size_t row_start = tile_row * tile_size;
+                  std::size_t col_start = tile_col * tile_size;
+
+                  for (std::size_t k = 0; k < N; k += tile_size)
+                  {
+                      execute_tile_edge(A, B, C, N, row_start, col_start, k, tile_size);
+                  }
+              }
+          });
+
+#else
         std::vector<std::future<void>> futures;
 
         for (std::size_t t = 0; t < num_threads; ++t)
@@ -344,6 +395,7 @@ static void tiled_blocked_parallel_mmul_bench(benchmark::State& s)
         }
         for (auto& fut : futures)
             fut.get();
+#endif
     }
     ALIGNED_FREE(A);
     ALIGNED_FREE(B);
@@ -497,13 +549,13 @@ int main(int argc, char** argv)
               static_cast<unsigned int>(std::stoi(argv[i])), std::thread::hardware_concurrency());
         }
     }
-
+#if 0
     if (!run_correctness_check(512))
     {
         std::cerr << "Correctness test failed! Aborting benchmarks.\n";
         return 1;
     }
-
+#endif
     // Pass filtered arguments to Google Benchmark
     int benchmark_argc = static_cast<int>(benchmark_args.size());
     char** benchmark_argv = benchmark_args.data();

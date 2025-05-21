@@ -1,3 +1,4 @@
+set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
 set(TARGET_NAME absolute)
 
 if (EMSCRIPTEN)
@@ -16,11 +17,13 @@ if (EMSCRIPTEN)
     PRE_JS ${PROJECT_SOURCE_DIR}/emscripten/pre.js
     THREADING_ENABLED ON)
 else()
+  find_package(TBB REQUIRED)
   add_executable(${TARGET_NAME} benchmark.cpp)
   # Set compiler flags for optimization and standards
   target_link_libraries(${TARGET_NAME} PUBLIC build)
   # Link against benchmark and pthread
   target_link_libraries(${TARGET_NAME} PRIVATE benchmark::benchmark Threads::Threads)
+  target_link_libraries(${TARGET_NAME} PRIVATE TBB::tbb)
   sps_link_optimization(${TARGET_NAME})  
 endif()
 
