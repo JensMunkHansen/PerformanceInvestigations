@@ -41,8 +41,8 @@ static void serial_mmul_bench(benchmark::State& s)
 {
     // Number Dimensions of our matrix
     std::size_t M = s.range(0);
-    std::size_t L = 8;
-    std::size_t N = 8;
+    std::size_t L = 16;
+    std::size_t N = 16;
 
     // Create our random number generators
     std::mt19937 rng;
@@ -226,10 +226,10 @@ inline void execute_tile_edge(const float* A, const float* B, float* C, std::siz
  *       Tile size and block size are compile-time constants optimized for target
  * cache/microarchitecture.
  */
+template <size_t tile_size>
 static void tiled_blocked_parallel_mmul_general(const float* A, const float* B, float* C,
   std::size_t L, std::size_t M, std::size_t N, std::size_t num_threads, ThreadPool& pool)
 {
-    const std::size_t tile_size = 8; // 128;
     const std::size_t num_tile_rows = (L + tile_size - 1) / tile_size;
     const std::size_t num_tile_cols = (N + tile_size - 1) / tile_size;
 
@@ -273,7 +273,7 @@ static void tiled_blocked_parallel_mmul_general(const float* A, const float* B, 
 
                   for (std::size_t k = 0; k < M; k += tile_size)
                   {
-                      execute_tile_fast<8>(A, B, C, L, M, N, row_start, col_start, k, tile_size);
+                      execute_tile_fast<16>(A, B, C, L, M, N, row_start, col_start, k, tile_size);
                   }
               }
           });
@@ -303,11 +303,11 @@ static void tiled_blocked_parallel_mmul_general(const float* A, const float* B, 
                       bool edge_k = (k + tile_size > M);
                       if (edge_k)
                       {
-                          execute_tile_edge<8>(A, B, C, L, M, N, row_start, col_start, k, tile_size);
+                          execute_tile_edge<16>(A, B, C, L, M, N, row_start, col_start, k, tile_size);
                       }
                       else
                       {
-                          execute_tile_fast<8>(A, B, C, L, M, N, row_start, col_start, k, tile_size);
+                          execute_tile_fast<16>(A, B, C, L, M, N, row_start, col_start, k, tile_size);
                       }
                   }
               }
@@ -333,7 +333,7 @@ static void tiled_blocked_parallel_mmul_general(const float* A, const float* B, 
 
                   for (std::size_t k = 0; k < M; k += tile_size)
                   {
-                      execute_tile_fast<8>(A, B, C, L, M, N, row_start, col_start, k, tile_size);
+                      execute_tile_fast<16>(A, B, C, L, M, N, row_start, col_start, k, tile_size);
                   }
               }
           }
@@ -356,11 +356,11 @@ static void tiled_blocked_parallel_mmul_general(const float* A, const float* B, 
                   bool edge_k = (k + tile_size > M);
                   if (edge_k)
                   {
-                      execute_tile_edge<8>(A, B, C, L, M, N, row_start, col_start, k, tile_size);
+                      execute_tile_edge<16>(A, B, C, L, M, N, row_start, col_start, k, tile_size);
                   }
                   else
                   {
-                      execute_tile_fast<8>(A, B, C, L, M, N, row_start, col_start, k, tile_size);
+                      execute_tile_fast<16>(A, B, C, L, M, N, row_start, col_start, k, tile_size);
                   }
               }
           }
@@ -386,7 +386,7 @@ static void tiled_blocked_parallel_mmul_general(const float* A, const float* B, 
                   for (std::size_t k = 0; k < M; k += tile_size)
                   {
                       // Middle tiles are guaranteed safe
-                      execute_tile_fast<8>(A, B, C, L, M, N, row_start, col_start, k, tile_size);
+                      execute_tile_fast<16>(A, B, C, L, M, N, row_start, col_start, k, tile_size);
                   }
               }
           }));
@@ -416,12 +416,12 @@ static void tiled_blocked_parallel_mmul_general(const float* A, const float* B, 
                       bool edge_k = (k + tile_size > M);
                       if (edge_k)
                       {
-                          execute_tile_edge<8>(
+                          execute_tile_edge<16>(
                             A, B, C, L, M, N, row_start, col_start, k, tile_size);
                       }
                       else
                       {
-                          execute_tile_fast<8>(
+                          execute_tile_fast<16>(
                             A, B, C, L, M, N, row_start, col_start, k, tile_size);
                       }
                   }
@@ -438,8 +438,8 @@ static void tiled_blocked_parallel_mmul_general(const float* A, const float* B, 
 static void tiled_blocked_parallel_mmul_bench(benchmark::State& s)
 {
     const std::size_t M = s.range(0);
-    const std::size_t L = 8;
-    const std::size_t N = 8;
+    const std::size_t L = 16;
+    const std::size_t N = 16;
 
     std::mt19937 rng(std::random_device{}());
     std::uniform_real_distribution<float> dist(-10, 10);
@@ -454,7 +454,7 @@ static void tiled_blocked_parallel_mmul_bench(benchmark::State& s)
     for (auto _ : s)
     {
         std::fill(C, C + L * N, 0.0f);
-        tiled_blocked_parallel_mmul_general(A, B, C, L, M, N, numThreads, pool);
+        tiled_blocked_parallel_mmul_general<16>(A, B, C, L, M, N, numThreads, pool);
     }
 
     ALIGNED_FREE(A);
@@ -467,6 +467,69 @@ BENCHMARK(tiled_blocked_parallel_mmul_bench)
   ->Arg(2 * 8 * 16 * numThreads)
   ->Arg(3 * 8 * 16 * numThreads)
   ->Unit(benchmark::kMillisecond);
+
+static void serial_subscan_mmul_bench(benchmark::State& s)
+{
+    // Number Dimensions of our matrix
+    std::size_t M = 128;
+    std::size_t L = 128;
+    std::size_t N = 128;
+
+    // Create our random number generators
+    std::mt19937 rng;
+    rng.seed(std::random_device()());
+    std::uniform_real_distribution<float> dist(-10, 10);
+
+    // Create input matrices
+    float* A = static_cast<float*>(ALIGNED_ALLOC(64, L * M * sizeof(float)));
+    float* B = static_cast<float*>(ALIGNED_ALLOC(64, M * N * sizeof(float)));
+    float* C = static_cast<float*>(ALIGNED_ALLOC(64, L * N * sizeof(float)));
+
+    // Initialize them with random values (and C to 0)
+    std::generate(A, A + L * M, [&] { return dist(rng); });
+    std::generate(B, B + M * N, [&] { return dist(rng); });
+    std::generate(C, C + L * N, [&] { return 0.0f; });
+
+    // Main benchmark loop
+    for (auto _ : s)
+    {
+        serial_mmul(A, B, C, L, M, N);
+    }
+
+    // Free memory
+    ALIGNED_FREE(A);
+    ALIGNED_FREE(B);
+    ALIGNED_FREE(C);
+}
+BENCHMARK(serial_subscan_mmul_bench)->Arg(1)->Unit(benchmark::kMillisecond);
+
+static void tiled_subscan_parallel_mmul_bench(benchmark::State& s)
+{
+    const std::size_t M = 128;
+    const std::size_t L = 128;
+    const std::size_t N = 128;
+
+    std::mt19937 rng(std::random_device{}());
+    std::uniform_real_distribution<float> dist(-10, 10);
+
+    float* A = static_cast<float*>(ALIGNED_ALLOC(64, L * M * sizeof(float)));
+    float* B = static_cast<float*>(ALIGNED_ALLOC(64, M * N * sizeof(float)));
+    float* C = static_cast<float*>(ALIGNED_ALLOC(64, L * N * sizeof(float)));
+
+    std::generate(A, A + L * M, [&] { return dist(rng); });
+    std::generate(B, B + M * N, [&] { return dist(rng); });
+
+    for (auto _ : s)
+    {
+        std::fill(C, C + L * N, 0.0f);
+        tiled_blocked_parallel_mmul_general<16>(A, B, C, L, M, N, numThreads, pool);
+    }
+
+    ALIGNED_FREE(A);
+    ALIGNED_FREE(B);
+    ALIGNED_FREE(C);
+}
+BENCHMARK(tiled_subscan_parallel_mmul_bench)->Arg(1)->Unit(benchmark::kMillisecond);
 
 int main(int argc, char** argv)
 {
