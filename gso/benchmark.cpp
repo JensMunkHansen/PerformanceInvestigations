@@ -71,9 +71,9 @@ static void serial_mmul_bench(benchmark::State& s)
     delete[] C;
 }
 BENCHMARK(serial_mmul_bench)
-  ->Arg(1 * BENCH_SCALE * 16 * numThreads)
-  ->Arg(2 * BENCH_SCALE * 16 * numThreads)
-  ->Arg(3 * BENCH_SCALE * 16 * numThreads)
+  ->Arg(1 * 8 * 16 * numThreads)
+  ->Arg(2 * 8 * 16 * numThreads)
+  ->Arg(3 * 8 * 16 * numThreads)
   ->Unit(benchmark::kMillisecond);
 
 /**
@@ -463,9 +463,9 @@ static void tiled_blocked_parallel_mmul_bench(benchmark::State& s)
 }
 
 BENCHMARK(tiled_blocked_parallel_mmul_bench)
-  ->Arg(1 * BENCH_SCALE * 16 * numThreads)
-  ->Arg(2 * BENCH_SCALE * 16 * numThreads)
-  ->Arg(3 * BENCH_SCALE * 16 * numThreads)
+  ->Arg(1 * 8 * 16 * numThreads)
+  ->Arg(2 * 8 * 16 * numThreads)
+  ->Arg(3 * 8 * 16 * numThreads)
   ->Unit(benchmark::kMillisecond);
 
 int main(int argc, char** argv)
