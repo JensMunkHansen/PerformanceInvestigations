@@ -21,6 +21,9 @@
 #include <oneapi/tbb/task_group.h>
 #else
 #include "../threadpool.hpp"
+#endif
+
+#ifndef USE_TBB
 ThreadPool pool(std::thread::hardware_concurrency());
 #endif
 
@@ -197,28 +200,32 @@ inline void execute_tile_fast(const float* __restrict A, const float* __restrict
     {
         for (std::size_t j = col_start; j < col_end; j += block_size)
         {
+            // Update local c
             alignas(64) float c[block_size][block_size] = { 0 };
 
             for (std::size_t kk = k; kk < k_end; ++kk)
             {
                 alignas(64) float a[block_size];
-#pragma ivdep
+                // Without this, we loose a factor of 3 for large arrays.
+                PRAGMA_IVDEP
                 for (std::size_t bi = 0; bi < block_size; ++bi)
                     a[bi] = A[(i + bi) * N + kk];
-
-#pragma ivdep
+                PRAGMA_IVDEP
                 for (std::size_t bj = 0; bj < block_size; ++bj)
                 {
                     float b = B[kk * N + (j + bj)];
-#pragma ivdep
+                    PRAGMA_IVDEP
                     for (std::size_t bi = 0; bi < block_size; ++bi)
+                    {
                         c[bi][bj] += a[bi] * b;
+                    }
                 }
             }
-#pragma ivdep
+            // Update global C
+            PRAGMA_IVDEP
             for (std::size_t bi = 0; bi < block_size; ++bi)
             {
-#pragma ivdep
+                PRAGMA_IVDEP
                 for (std::size_t bj = 0; bj < block_size; ++bj)
                     C[(i + bi) * N + (j + bj)] += c[bi][bj];
             }
@@ -238,7 +245,7 @@ inline void execute_tile_edge(const float* A, const float* B, float* C, std::siz
     {
         for (std::size_t j = col_start; j < col_end; j += block_size)
         {
-            float c[block_size][block_size] = { 0 };
+            alignas(64) float c[block_size][block_size] = { 0 };
 
             for (std::size_t kk = k; kk < k_end; ++kk)
             {
@@ -333,6 +340,7 @@ static void tiled_blocked_parallel_mmul_bench(benchmark::State& s)
               });
         }
 
+        // Cold tile (boundaries)
         for (std::size_t t = 0; t < num_threads; ++t)
         {
             std::size_t begin = t * tiles_per_thread;
@@ -523,21 +531,18 @@ bool run_correctness_check(std::size_t N)
                               for (std::size_t kk = k; kk < k_end; ++kk)
                               {
                                   float a[block_size];
-#pragma ivdep
-#pragma clang loop vectorize(enable)
+                                  PRAGMA_IVDEP
                                   for (std::size_t bi = 0; bi < block_size; ++bi)
                                   {
                                       a[bi] = A[(i + bi) * N + kk];
                                   }
 
-#pragma ivdep
-#pragma clang loop vectorize(enable)
+                                  PRAGMA_IVDEP
                                   for (std::size_t bj = 0; bj < block_size; ++bj)
                                   {
                                       float b = B[kk * N + (j + bj)];
 
-#pragma ivdep
-#pragma clang loop vectorize(enable)
+                                      PRAGMA_IVDEP
                                       for (std::size_t bi = 0; bi < block_size; ++bi)
                                       {
                                           c[bi][bj] += a[bi] * b;
@@ -545,12 +550,10 @@ bool run_correctness_check(std::size_t N)
                                   }
                               }
 
-#pragma ivdep
-#pragma clang loop vectorize(enable)
+                              PRAGMA_IVDEP
                               for (std::size_t bi = 0; bi < block_size; ++bi)
                               {
-#pragma ivdep
-#pragma clang loop vectorize(enable)
+                                  PRAGMA_IVDEP
                                   for (std::size_t bj = 0; bj < block_size; ++bj)
                                   {
                                       C_test[(i + bi) * N + (j + bj)] += c[bi][bj];
