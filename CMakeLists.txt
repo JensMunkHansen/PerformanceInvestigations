@@ -42,6 +42,7 @@ include(spsCompilerPlatformFlags)
 add_subdirectory(baseline)
 add_subdirectory(baseline_nonpower)
 add_subdirectory(working)
+add_subdirectory(gso)
 
 # Needs to be tested on windows
 add_subdirectory(blocked)
