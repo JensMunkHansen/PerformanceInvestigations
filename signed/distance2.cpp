@@ -6,6 +6,8 @@
 #include <random>
 #include <vector>
 
+#define USE_MANUAL 0
+
 // Auto-vectorized scalar version (SoA + restrict + ivdep)
 void compute_scalar_soa_restrict(const float* __restrict x, const float* __restrict y,
   float* __restrict distances, size_t N, float A, float B, float C)
@@ -26,6 +28,7 @@ void compute_scalar_soa_restrict(const float* __restrict x, const float* __restr
     }
 }
 
+#if USE_MANUAL
 // Manual AVX2 implementation
 void compute_avx2_soa(const float* __restrict x, const float* __restrict y,
   float* __restrict distances, size_t N, float A, float B, float C)
@@ -70,6 +73,7 @@ void compute_avx2_soa(const float* __restrict x, const float* __restrict y,
         distances[i] = dist * sign;
     }
 }
+#endif
 
 int main()
 {
@@ -91,9 +95,10 @@ int main()
     auto t1 = std::chrono::high_resolution_clock::now();
     compute_scalar_soa_restrict(x.data(), y.data(), d_scalar.data(), N, A, B, C);
     auto t2 = std::chrono::high_resolution_clock::now();
-
+#if USE_MANUAL
     // AVX2 version
     compute_avx2_soa(x.data(), y.data(), d_avx2.data(), N, A, B, C);
+#endif
     auto t3 = std::chrono::high_resolution_clock::now();
 
     // Sample output
@@ -101,18 +106,19 @@ int main()
     for (int i = 0; i < 5; ++i)
         std::cout << d_scalar[i] << " ";
     std::cout << "\n";
-
+#if USE_MANUAL
     std::cout << "Sample distances (AVX2):   ";
     for (int i = 0; i < 5; ++i)
         std::cout << d_avx2[i] << " ";
     std::cout << "\n";
-
+#endif
     // Timing
     std::chrono::duration<double> dt_scalar = t2 - t1;
+#if USE_MANUAL
     std::chrono::duration<double> dt_avx2 = t3 - t2;
-
-    std::cout << "Scalar vectorized duration: " << dt_scalar.count() << " s\n";
     std::cout << "Manual AVX2 duration:       " << dt_avx2.count() << " s\n";
+#endif
+    std::cout << "Scalar vectorized duration: " << dt_scalar.count() << " s\n";
 
     return 0;
 }

@@ -57,6 +57,7 @@ endif()
 add_subdirectory(best)
 add_subdirectory(absolute)
 add_subdirectory(general)
+add_subdirectory(signed)
 
 # CSharp examples
 if(NOT EMSCRIPTEN AND NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
