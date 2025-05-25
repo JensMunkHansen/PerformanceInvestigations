@@ -40,8 +40,10 @@ void compute_scalar_soa_restrict(const float* __restrict x, const float* __restr
 int main()
 {
     constexpr size_t N = 1 << 20; // 1M points
-    alignas(32) std::vector<float> x(N), y(N), d_scalar(N), d_avx2(N);
-
+    alignas(32) std::vector<float> d_avx2(N);
+    float* x = static_cast<float*>(std::aligned_alloc(64, N * sizeof(float)));
+    float* y = static_cast<float*>(std::aligned_alloc(64, N * sizeof(float)));
+    float* d_scalars = static_cast<float*>(std::aligned_alloc(64, N * sizeof(float)));
     // Fill with random values
     std::mt19937 rng(123);
     std::uniform_real_distribution<float> dist(-100.0f, 100.0f);
@@ -55,18 +57,21 @@ int main()
 
     // Scalar version
     auto t1 = std::chrono::high_resolution_clock::now();
-    compute_scalar_soa_restrict(x.data(), y.data(), d_scalar.data(), N, A, B, C);
+    compute_scalar_soa_restrict(x, y, d_scalars, N, A, B, C);
     auto t2 = std::chrono::high_resolution_clock::now();
     auto t3 = std::chrono::high_resolution_clock::now();
 
     // Sample output
     std::cout << "Sample distances (scalar): ";
     for (int i = 0; i < 5; ++i)
-        std::cout << d_scalar[i] << " ";
+        std::cout << d_scalars[i] << " ";
     std::cout << "\n";
     // Timing
     std::chrono::duration<double> dt_scalar = t2 - t1;
     std::cout << "Scalar vectorized duration: " << dt_scalar.count() << " s\n";
 
+    std::free(x);
+    std::free(y);
+    std::free(d_scalars);
     return 0;
 }
