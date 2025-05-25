@@ -6,12 +6,17 @@
 #include <random>
 #include <vector>
 
-#define USE_MANUAL 0
+// #define USE_MANUAL 0
 
 // Auto-vectorized scalar version (SoA + restrict + ivdep)
 void compute_scalar_soa_restrict(const float* __restrict x, const float* __restrict y,
   float* __restrict distances, size_t N, float A, float B, float C)
 {
+    const float* __restrict x_aligned =
+      static_cast<const float* __restrict>(__builtin_assume_aligned(x, 32));
+
+    //    float* __restrict d_aligned = (float* __builtin_assume_aligned(distances, 32));
+
     float denom = std::sqrt(A * A + B * B);
 
 #pragma GCC ivdep
@@ -78,7 +83,7 @@ void compute_avx2_soa(const float* __restrict x, const float* __restrict y,
 int main()
 {
     constexpr size_t N = 1 << 20; // 1M points
-    std::vector<float> x(N), y(N), d_scalar(N), d_avx2(N);
+    alignas(32) std::vector<float> x(N), y(N), d_scalar(N), d_avx2(N);
 
     // Fill with random values
     std::mt19937 rng(123);
