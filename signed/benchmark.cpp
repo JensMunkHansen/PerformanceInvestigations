@@ -19,7 +19,7 @@ void compute_scalar_soa(const float* x, const float* y, float* distances, const 
     const float A = -0.5f;
     const float B = 1.0f;
     const float C = -10.0f;
-    float denom = std::sqrt(A * A + B * B);
+    float rdenom = 1.0f / std::sqrt(A * A + B * B);
 
     PRAGMA_IVDEP
     for (size_t i = 0; i < N; ++i)
@@ -27,7 +27,7 @@ void compute_scalar_soa(const float* x, const float* y, float* distances, const 
         float xi = x[i];
         float yi = y[i];
 
-        float dist = (A * xi + B * yi + C) / denom;
+        float dist = (A * xi + B * yi + C) * rdenom;
         float yline = (-A * xi - C) / B;
 
         float sign = (yi < yline) ? -1.0f : 1.0f;
@@ -76,6 +76,19 @@ BENCHMARK(compute_scalar_soa_bench)
   ->Unit(benchmark::kNanosecond)
   ->UseRealTime();
 
+#if 0
+    // Optional: One Newton-Raphson iteration for better precision
+    // denom_rsqrt = 0.5 * denom_rsqrt * (3 - x * rsqrt^2)
+    __m256 half = _mm256_set1_ps(0.5f);
+    __m256 three = _mm256_set1_ps(3.0f);
+    __m256 denom_sq = _mm256_set1_ps(denom_scalar * denom_scalar);
+    __m256 tmp = _mm256_mul_ps(denom_rsqrt, denom_rsqrt);
+    tmp = _mm256_mul_ps(tmp, denom_sq);
+    tmp = _mm256_sub_ps(three, tmp);
+    tmp = _mm256_mul_ps(tmp, half);
+
+#endif
+
 void compute_avx2_soa(const float* x, const float* y, float* distances, size_t N)
 {
     assert(x && y && distances);
@@ -88,7 +101,12 @@ void compute_avx2_soa(const float* x, const float* y, float* distances, size_t N
     __m256 a_vec = _mm256_set1_ps(A);
     __m256 b_vec = _mm256_set1_ps(B);
     __m256 c_vec = _mm256_set1_ps(C);
-    __m256 denom = _mm256_set1_ps(std::sqrt(A * A + B * B));
+
+    // Use rsqrt approximation with optional refinement
+    float denom_scalar = std::sqrt(A * A + B * B);
+    __m256 denom_rsqrt = _mm256_rsqrt_ps(_mm256_set1_ps(denom_scalar * denom_scalar));
+
+    denom_rsqrt = _mm256_mul_ps(denom_rsqrt, tmp);
 
     for (; i + stride - 1 < N; i += stride)
     {
@@ -98,7 +116,7 @@ void compute_avx2_soa(const float* x, const float* y, float* distances, size_t N
         __m256 ax = _mm256_mul_ps(a_vec, x_vec);
         __m256 by = _mm256_mul_ps(b_vec, y_vec);
         __m256 numerator = _mm256_add_ps(_mm256_add_ps(ax, by), c_vec);
-        __m256 dist = _mm256_div_ps(numerator, denom);
+        __m256 dist = _mm256_mul_ps(numerator, denom_rsqrt);
 
         __m256 neg_ax = _mm256_sub_ps(_mm256_setzero_ps(), ax);
         __m256 yline = _mm256_div_ps(_mm256_sub_ps(neg_ax, c_vec), b_vec);
