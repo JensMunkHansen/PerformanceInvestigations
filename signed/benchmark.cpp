@@ -106,8 +106,6 @@ void compute_avx2_soa(const float* x, const float* y, float* distances, size_t N
     float denom_scalar = std::sqrt(A * A + B * B);
     __m256 denom_rsqrt = _mm256_rsqrt_ps(_mm256_set1_ps(denom_scalar * denom_scalar));
 
-    denom_rsqrt = _mm256_mul_ps(denom_rsqrt, tmp);
-
     for (; i + stride - 1 < N; i += stride)
     {
         __m256 x_vec = _mm256_loadu_ps(&x[i]);
